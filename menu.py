@@ -1,8 +1,11 @@
+import modUtilidades as util
+import Slice as s
 import subprocess
 import json
 
-# Muestra las opciones, pide eñegir una y lo valida
 def menuPrincipal() -> int:
+    "Muestra las opciones, pide elegir una y lo valida"
+    
     print("\n###################### Menu ####################")
     print("\nAcciones disponibles para realizar:")
     # TODO: Esto está sujeto a cambios
@@ -16,55 +19,13 @@ def menuPrincipal() -> int:
     print("\t8) Salir")
 
     # Se pide elegir una opción
-    try:
-        opt = int(input("> Elija una opción [1-8]: "))  # Se verifica que sea un número
+    opt = input(f"> Elija una opción [1-8]: ")
+    if util.validarOpcionNumerica(opt,8):
         print()
-        if opt>=1 and opt<=7:                           # Se verifica que sea una opción válida
-            return opt
-        else:
-            print("Debe ingresar una opción válida")
-    except ValueError:
+        return int(opt)
+    else:
         print("Debe ingresar una opción válida")
 
-def listSlices():
-    pass
-
-def createSlice():
-    nameSlice = input("\nIngrese nombre del Slice a crear:")
-    
-
-def editSlice():
-    while(True):
-        listSlices()
-        slice = input("\nSeleccione un slice: ")
-        print("\nAcciones disponibles para realizar:")
-        print("\t1) Agregar nodo")
-        print("\t2) Agregar enlace")
-        print("\t3) Agregar VM")
-        print("\t4) Salir")
-        
-        # Se pide elegir una opción
-        try:
-            opt = int(input("> Elija una opción [1-4]: "))  # Se verifica que sea un número
-            print()
-            if opt>=1 and opt<=4:                           # Se verifica que sea una opción válida
-                if opt==1:
-                    pass
-                if opt==2:
-                    pass
-                if opt==3:
-                    pass
-                if opt==4:
-                    print("Regresando al menu principal...")
-                    break
-            else:
-                print("Debe ingresar una opción válida")
-        except ValueError:
-            print("Debe ingresar una opción válida")
-
-
-
-    
 # Función Main
 if __name__=="__main__":
     
@@ -80,11 +41,11 @@ if __name__=="__main__":
 
         # Se trabaja la opción:
         if opt==1:
-            pass
+            s.listarSlices()
         if opt==2:
-            pass
+            s.crearSlice()
         if opt==3:
-            pass
+            s.editarSlice()
         if opt==4:
             pass
         if opt==5:
