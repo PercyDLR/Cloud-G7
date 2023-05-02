@@ -3,24 +3,67 @@ import json
 
 # Muestra las opciones, pide eñegir una y lo valida
 def menuPrincipal() -> int:
-    print("\nAcciones Disponibles para realizar:")
+    print("\n###################### Menu ####################")
+    print("\nAcciones disponibles para realizar:")
     # TODO: Esto está sujeto a cambios
-    print("\t1) CRUD VMs")
-    print("\t2) CRUD Redes")
-    print("\t3) CRUD Bridges")
-    print("\t4) CRUD VMs")
-    print("\t5) Salir")
+    print("\t1) Listar slices disponibles")
+    print("\t2) Crear slice")
+    print("\t3) Editar slices disponibles")
+    print("\t4) Eliminar slice")
+    print("\t5) Importar imagen a VM")
+    print("\t6) Eliminar imagen de VM")
+    print("\t7) Configuración de red (VMs)")
+    print("\t8) Salir")
 
     # Se pide elegir una opción
     try:
-        opt = int(input("> Elija una opción [1-5]: "))  # Se verifica que sea un número
+        opt = int(input("> Elija una opción [1-8]: "))  # Se verifica que sea un número
         print()
-        if opt>=1 and opt<=5:                           # Se verifica que sea una opción válida
+        if opt>=1 and opt<=7:                           # Se verifica que sea una opción válida
             return opt
         else:
             print("Debe ingresar una opción válida")
     except ValueError:
         print("Debe ingresar una opción válida")
+
+def listSlices():
+    pass
+
+def createSlice():
+    nameSlice = input("\nIngrese nombre del Slice a crear:")
+    
+
+def editSlice():
+    while(True):
+        listSlices()
+        slice = input("\nSeleccione un slice: ")
+        print("\nAcciones disponibles para realizar:")
+        print("\t1) Agregar nodo")
+        print("\t2) Agregar enlace")
+        print("\t3) Agregar VM")
+        print("\t4) Salir")
+        
+        # Se pide elegir una opción
+        try:
+            opt = int(input("> Elija una opción [1-4]: "))  # Se verifica que sea un número
+            print()
+            if opt>=1 and opt<=4:                           # Se verifica que sea una opción válida
+                if opt==1:
+                    pass
+                if opt==2:
+                    pass
+                if opt==3:
+                    pass
+                if opt==4:
+                    print("Regresando al menu principal...")
+                    break
+            else:
+                print("Debe ingresar una opción válida")
+        except ValueError:
+            print("Debe ingresar una opción válida")
+
+
+
     
 # Función Main
 if __name__=="__main__":
@@ -45,5 +88,11 @@ if __name__=="__main__":
         if opt==4:
             pass
         if opt==5:
+            pass
+        if opt==6:
+            pass
+        if opt==7:
+            pass
+        if opt==8:
             print("Saliendo del programa...")
             break
