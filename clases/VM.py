@@ -1,7 +1,11 @@
-from typing import List
+from dataclasses import dataclass
 
+@dataclass
 class VM:
-    def __init__(self, parametros:List[str]) -> None:
-        self.nombreVM = parametros[0]
-        self.nombreImg = parametros[1]
-        self.puertoVNC = parametros[2]
+    nombreVM :str
+    nombreImg : str
+    puertoVNC : int
+    memoria : int
+    storage : int
+    vcpus : int
+    estado : str
