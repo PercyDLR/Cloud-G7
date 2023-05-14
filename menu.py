@@ -6,12 +6,14 @@ import hashlib
 import getpass
 
 def login():
+    "Implementa un logueo básico"
+
     while True:
         username = input("Ingrese username: ")
         password = hashlib.sha256(getpass.getpass("Ingrese contraseña: ").encode()).hexdigest()
         #password is 12345
         if(username=="grupo7" and 
-           password=="5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5"):
+            password=="5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5"):
             return
         else:
             print("** El usuario indicado no existe")
@@ -23,7 +25,7 @@ def login():
 
 def menuPrincipal() -> int:
     "Muestra las opciones, pide elegir una y lo valida"
-    
+
     print("\n###################### Menu ####################")
     print("\nAcciones disponibles para realizar:")
     # TODO: Esto está sujeto a cambios
@@ -37,12 +39,14 @@ def menuPrincipal() -> int:
     print("\t8) Salir")
 
     # Se pide elegir una opción
-    opt = input(f"> Elija una opción [1-8]: ")
+    opt = input("> Elija una opción [1-8]: ")
     if util.validarOpcionNumerica(opt,8):
         print()
         return int(opt)
-    else:
-        print("Debe ingresar una opción válida")
+    
+    print("Debe ingresar una opción válida")
+    return 0
+        
 
 # Función Main
 if __name__=="__main__":

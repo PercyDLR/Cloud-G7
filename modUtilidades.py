@@ -1,17 +1,33 @@
-from time import sleep
 from typing import List,Any
+from time import sleep
+
+def printMenu(lineas:List[str]) -> int:
+    "Imprime un menú"
+
+    # Lista las opciones
+    for idx,linea in enumerate(lineas):
+        if idx == 0:
+            print(f"\n{linea}")
+        else:
+            print(f"\t{idx}) {linea}")
+    
+    # Se pide elegir una opción
+    opt = input(f"> Elija una opción [1-{len(lineas)-1}]: ")
+    if validarOpcionNumerica(opt,8):
+        print()
+        return int(opt)
+    
+    print("Debe ingresar una opción válida")
+    return 0
 
 def validarOpcionNumerica(opt:str,max:int,) -> bool:
     "Verifica que la opción elegida sea válida"
-    try: 
-        opt_int = int(opt)
-        return (opt_int>=1 and opt_int<=max)  
-    except ValueError:
-        return False 
+
+    return opt.isdigit() and (int(opt)>=1 and int(opt)<=max)  
     
 def buscarPorNombre(nombre:str,lista:List) -> Any:
     "Busca un elemento en una lista por su nombre"
-    
+
     # Se buscan todas las coincidencias
     listaCoincidencias = []
     for elemento in lista:
