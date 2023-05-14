@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 import modUtilidades as util
 from time import sleep
+from ipaddress import ip_address
 
 @dataclass
 class Regla:
@@ -9,12 +10,12 @@ class Regla:
     srcIP: str
     dstIP: str
     protocolo: str
-    rangoPuertos: str
+    puerto: int
     action: bool
     status: str
 
     def __str__(self) -> str:
-        return f"{self.nombre}: {self.protocolo} ({self.rangoPuertos}) {self.srcIP}->{self.dstIP} {self.action} Estado: {self.status}"
+        return f"{self.nombre}: {self.protocolo} {self.srcIP}->{self.dstIP}:({self.puerto}) {self.action} Estado: {self.status}"
 
 @dataclass
 class GrupoSeguridad:
@@ -77,20 +78,45 @@ def main(listaGrupos:List[GrupoSeguridad]) -> List[GrupoSeguridad]:
                     if nombre.lower() not in listaNombres:
                         dictProto = {"ssh": 22, "http":80, "https": 443, "mysql": 3306}
 
+                        # Valida las IPs de origen y destino
+                        try:
+                            srcIP = input("> Ingrese la IP de origen: ")
+                            ip_address(srcIP)
+                            dstIP = input("> Ingrese la IP de destino: ")
+                            ip_address(dstIP)
+                        except ValueError:
+                            print("La dirección ingresada no es válida")
+                            continue
+
+                        # Se elige el protocolo y puerto a usar
                         protocolo = input("> Ingrese el protocolo [ssh,http,mysql,...,tcp]: ")
 
                         if protocolo in dictProto:
                             puerto = dictProto[protocolo]
-                        elif protocolo == "tcp":
-                            
-                            input("> Ingrese el puerto tcp personalizado: ") 
 
+                        elif protocolo.lower() == "tcp":
+                            try:
+                                puerto = int(input("> Ingrese el puerto tcp personalizado: "))
+                                if puerto <= 0 or puerto > 65535:
+                                    raise ValueError
+                            except ValueError:
+                                print("El puerto debe ser un número entero positivo menor a 65535")
+                                continue
+                        else:
+                            print("El protocolo ingresado no es válido")
+                            continue
 
                         print("\nCreando Grupo de seguridad...")
                         sleep(1)
                         print(f"Grupo {nombre} creado exitosamente!")
                     else:
                         print(f"\nEl nombre {nombre} ya existe, elija otro\n")
+                
+                if opt2 == 3:
+                    pass
+
+                if opt2 == 4:
+                    break
             
 
         if opt == 4:
