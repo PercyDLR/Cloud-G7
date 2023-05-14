@@ -1,57 +1,35 @@
 import modUtilidades as util
-import Slice as s
+import funcionesMenu.Slice as s
+import funcionesMenu.Imagen as img
+import funcionesMenu.reglasSeguridad as r
 import subprocess
 import json
 import hashlib
 import getpass
+from typing import Dict, List, Any
 
-def login():
+def login() -> None:
     "Implementa un logueo básico"
 
-    while True:
-        username = input("Ingrese username: ")
-        password = hashlib.sha256(getpass.getpass("Ingrese contraseña: ").encode()).hexdigest()
+    for intentos in range(3,0,-1):
+        
+        username = input("\nIngrese su usuario: ").strip()
+        password = hashlib.sha256(getpass.getpass("Ingrese su contraseña: ").encode()).hexdigest()
         #password is 12345
         if(username=="grupo7" and 
             password=="5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5"):
             return
         else:
-            print("** El usuario indicado no existe")
-            print("Desea salir del CLI? si (y)")
-            inp = input("")
-            if inp=="y":
-                exit()
-
-
-def menuPrincipal() -> int:
-    "Muestra las opciones, pide elegir una y lo valida"
-
-    print("\n###################### Menu ####################")
-    print("\nAcciones disponibles para realizar:")
-    # TODO: Esto está sujeto a cambios
-    print("\t1) Listar slices disponibles")
-    print("\t2) Crear slice")
-    print("\t3) Editar slices disponibles")
-    print("\t4) Eliminar slice")
-    print("\t5) Importar imagen a VM")
-    print("\t6) Eliminar imagen de VM")
-    print("\t7) Configuración de red (VMs)")
-    print("\t8) Salir")
-
-    # Se pide elegir una opción
-    opt = input("> Elija una opción [1-8]: ")
-    if util.validarOpcionNumerica(opt,8):
-        print()
-        return int(opt)
+            print(f"\n** El usuario indicado no existe, {intentos-1} intentos restantes")
     
-    print("Debe ingresar una opción válida")
-    return 0
-        
+    print("\nEl logueo falló 3 veces. Por favor revise sus credenciales y vuelva a intentarlo más tarde")
+    exit()
+
+def obtenerDatos() -> Dict[str, List[Any]]:
+    return {"slices":[],"gruposSeguridad":[],"imagenes":[]}
 
 # Función Main
 if __name__=="__main__":
-    
-    login()
 
     # Presentación del Grupo
     print("\n################ Orquestador G7 ################")
@@ -60,10 +38,18 @@ if __name__=="__main__":
     print("--- Percy De La Rosa Vera\t\t20192265")
     print("################################################")
 
+    login()
+    datos = obtenerDatos()
+    
     while True:
-        opt = menuPrincipal() # Se muestra el menu principal y se elije una opción
+        opt = util.printMenu(["Opciones disponibles para realizar:",
+                              "Listar slices",
+                              "Crear slice",
+                              "Editar slice",
+                              "Configurar Grupos de Seguridad",
+                              "Administrar Imágenes de Disco",
+                              "Salir"])
 
-        # Se trabaja la opción:
         if opt==1:
             s.listarSlices()
         if opt==2:
@@ -71,13 +57,9 @@ if __name__=="__main__":
         if opt==3:
             s.editarSlice()
         if opt==4:
-            pass
+            r.main(datos["gruposSeguridad"])
         if opt==5:
-            pass
+            img.menuImg(datos["imagenes"])
         if opt==6:
-            pass
-        if opt==7:
-            pass
-        if opt==8:
             print("Saliendo del programa...")
             break

@@ -19,7 +19,7 @@ def crearSlice():
     """Crea un slice, preguntando por la topología base, y los
     equipos iniciales"""
     
-    nameSlice = input("Ingrese nombre del Slice a crear: ")
+    nameSlice = input("Ingrese nombre del Slice a crear: ").strip()
     
     # TODO: Código para crear el slice
     print(f"\nCreando slice {nameSlice}...")
@@ -27,7 +27,7 @@ def crearSlice():
     print(f"Slice {nameSlice} creado")
 
 def editarSlice():
-    nombre = input("Ingrese el nombre de un slice [Por defecto: Listar todos]: ")
+    nombre = input("Ingrese el nombre de un slice [Por defecto: Listar todos]: ").strip()
     sliceObj:Slice = util.buscarPorNombre(nombre,listaSlices)
 
     if sliceObj is None:
@@ -41,8 +41,10 @@ def editarSlice():
         print("\t4) Salir")
         
         # Se pide elegir una opción
-        opt = input(f"> Elija una opción [1-4]: ")
+        opt = input(f"> Elija una opción [1-4]: ").strip()
         if util.validarOpcionNumerica(opt,4):
             print(f"\nEditando slice {sliceObj.nombre}")
+
+
         else:
             print("Debe ingresar una opción válida")

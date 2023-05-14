@@ -12,9 +12,8 @@ def printMenu(lineas:List[str]) -> int:
             print(f"\t{idx}) {linea}")
     
     # Se pide elegir una opción
-    opt = input(f"> Elija una opción [1-{len(lineas)-1}]: ")
+    opt = input(f"> Elija una opción [1-{len(lineas)-1}]: ").strip()
     if validarOpcionNumerica(opt,8):
-        print()
         return int(opt)
     
     print("Debe ingresar una opción válida")
@@ -51,7 +50,7 @@ def buscarPorNombre(nombre:str,lista:List) -> Any:
         for idx, elemento in enumerate(listaCoincidencias):
             print(f"\t{idx+1}) {elemento.nombre}")
         
-        opt = input(f"> Elija una opción [1-{len(listaCoincidencias)}]: ")
+        opt = input(f"> Elija una opción [1-{len(listaCoincidencias)}]: ").strip()
         if validarOpcionNumerica(opt,len(listaCoincidencias)):
             print(f"\nSe encontró 1 coicidencia: {nombre}")
             return listaCoincidencias[int(opt)-1]
