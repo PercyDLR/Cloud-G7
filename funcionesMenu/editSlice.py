@@ -9,6 +9,8 @@ import math
 from tabulate import tabulate
 from funcionesMenu.Imagen import Imagen
 from funcionesMenu.reglasSeguridad import GrupoSeguridad
+import string
+
 
 @dataclass
 class currentSlice:
@@ -19,6 +21,11 @@ class currentSlice:
     lista_vm : list[VM]
     conexiones : list[tuple[str,str]]
 
+def generate_password(length=8):
+    characters = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(random.choice(characters) for _ in range(length))
+    return password
+
 def mostrarRequest(method,body,action):
     print(f"Method: {method}")
     print("URL: https://10.20.17.101/orquestador")
@@ -28,7 +35,7 @@ def mostrarRequest(method,body,action):
     print(f"Body:\n{json.dumps(body,indent=4)}")
     print("Send and waiting for response")
     time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[0.85,0.15])[0]
+    respuesta = random.choices(["exito","error"],weights=[0.8,0.2])[0]
     print(f"Response: {respuesta}")
     razon=""
     if respuesta=="error": 
@@ -48,8 +55,6 @@ def changeCurrent(slice_env,imagenes_env,grupos_env,slices_env):
     lista_imagenes= [x.nombre for x in imagenes_env]
     lista_grupos=[x.nombre for x in grupos_env]
     list_slices = slices_env
-    print(lista_imagenes)
-    print(lista_grupos)
 
 CLOSE = False
 
@@ -181,6 +186,7 @@ class Menu():
         headers = ["Nombre", "OS", "VNC", "Memoria", "Storage", "VCPUs", "Estado"]
         print(tabulate(vm_list,headers=headers, tablefmt="fancy_grid"))
         print(f"Si desea conectarse a su VM puede realizar una conexion VNC a la direccion 10.20.17.101 en el puerto {vnc}")
+        print(f"Su contraseña para conectarse es {generate_password()}, guardela dado que esta no se volvera a proveer")
 
     def instalarConexion(self,vm_name):
         global editingSlice
@@ -215,7 +221,7 @@ class Menu():
                     vms+= (z) if cont==0 else (","+z)
                     cont+=1
                 elif(z == x):
-                    vms+= (y) if cont==0 else (","+z)
+                    vms+= (y) if cont==0 else (","+y)
                     cont+=1
             if(editingSlice.nombre.lower()=="bus"):
                 cont=1; vms="Todas"
