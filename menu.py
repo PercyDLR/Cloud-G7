@@ -54,11 +54,9 @@ def mostrarRequestafter(method,body,action,body_resp):
 
 def login() -> None:
     "Implementa un logueo básico"
-
     for intentos in range(3,0,-1):
         username = input("\nIngrese su usuario: ").strip()
         password = hashlib.sha256(getpass.getpass("Ingrese su contraseña: ").encode()).hexdigest()
-
         #password is 12345
         if(username=="grupo7" and 
             password=="5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5"):
@@ -77,12 +75,16 @@ def login() -> None:
 
 datos_sesion = {"slices":[],"gruposSeguridad":[],"imagenes":[]}
 
+
+
+def updateSlice(sliceSave : editSlice.currentSlice):
+    datos_sesion["slices"]= [x if x.nombre != sliceSave.nombre else sliceSave for x in datos_sesion["slices"]]
+
 def obtenerDatos() -> Dict[str, List[Any]]:
     global datos_sesion
     datos_sesion={"slices":[],"gruposSeguridad":[],"imagenes":[Imagen("Cirros0.61","/home/ubuntu/cirros"),Imagen("Ubuntu22.02","/home/ubuntu/Ubuntu")
                                                                 ,Imagen("CentOS","/home/ubuntu/centos")]}
     datos_sesion["gruposSeguridad"] = [GrupoSeguridad("Grupo1",[])]
-    
     datos_sesion["slices"]= [editSlice.currentSlice(
     "SliceG7",
     "Anillo",
@@ -95,28 +97,19 @@ def obtenerDatos() -> Dict[str, List[Any]]:
      [("vm1","vm2"),("vm2","localServer"),("localServer","web_app"),("web_app","vm1")])]
     return datos_sesion
 
+
 # Función Main
 if __name__=="__main__":
-    
     # Presentación del Grupo
     print("\n################ Orquestador G7 ################")
     print("--- Elianne P. Ticse Espinoza\t\t20185361")
     print("--- Oliver A. Bustamante Sanchez\t20190981")
     print("--- Percy De La Rosa Vera\t\t20192265")
     print("################################################")
-    login()
+    #login()
     print("Obteniendo datos")
     datos = obtenerDatos()
-
     datos_sesion_dict={}
-    for key, value in datos_sesion.items():
-        if isinstance(value, list):
-            datos_sesion_dict[key] = [asdict(obj) for obj in value]
-        else:
-            datos_sesion_dict[key] = asdict(value)
-    if(mostrarRequest("POST",{"user_token":"aidba8hd8g38bd2397gf29323d2"},"obtener_datos", datos_sesion_dict)): exit()
-
-
 
     while True: 
         opt = util.printMenu(["Opciones disponibles para realizar:",
@@ -128,6 +121,7 @@ if __name__=="__main__":
                               "Salir"])
         if opt==1:
             list_slices = [[x.nombre] for x in datos["slices"]]
+            if(len(list_slices)==0): print("No hay slices creados...")
             headers = ["Nombre del slice"]
             while(inp1:=input("Desea buscar un Slice (1) o listar todo (2): ")) not in ["1","2"]:
                 print("No es una opcion valida")
@@ -144,12 +138,15 @@ if __name__=="__main__":
             s.crearSlice(datos["slices"],datos["gruposSeguridad"])
         if opt==3:
             list_slices_names = [x.nombre for x in datos["slices"]]
-            while(inp1:=input("Ingrese el nombre el slice: ")) not in list_slices_names:
-                print("El nombre del Slice no exite...")
-            idx = list_slices_names.index(inp1)
-            editSlice.changeCurrent(datos["slices"][idx], datos["imagenes"],datos["gruposSeguridad"])
-            print("Ingresado al menu de Editar Slice")
-            editSlice.start()
+            if(len(list_slices_names)!=0):
+                while(inp1:=input("Ingrese el nombre el slice:")) not in list_slices_names:
+                    print("El nombre del Slice no exite...")
+                idx = list_slices_names.index(inp1)
+                editSlice.changeCurrent(datos["slices"][idx], datos["imagenes"],datos["gruposSeguridad"],datos["slices"])
+                print("Ingresado al menu de Editar Slice")
+                editSlice.start()
+            else:
+                print("No hay slices creados")
         if opt==4:
             r.main(datos["gruposSeguridad"])
         if opt==5:
