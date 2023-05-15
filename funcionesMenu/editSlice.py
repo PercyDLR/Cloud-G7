@@ -6,7 +6,9 @@ import json
 import random
 import time
 import math
-
+from tabulate import tabulate
+from funcionesMenu.Imagen import Imagen
+from funcionesMenu.reglasSeguridad import GrupoSeguridad
 
 @dataclass
 class currentSlice:
@@ -26,7 +28,7 @@ def mostrarRequest(method,body,action):
     print(f"Body:\n{json.dumps(body,indent=4)}")
     print("Send and waiting for response")
     time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[0.67,0.33])[0]
+    respuesta = random.choices(["exito","error"],weights=[0.85,0.15])[0]
     print(f"Response: {respuesta}")
     razon=""
     if respuesta=="error": 
@@ -34,33 +36,29 @@ def mostrarRequest(method,body,action):
         print(f"Ha ocurrido un error **{razon}**")
         return True
     return False
-    
 
 
-lista_imagenes=["Cirros0.61", "Ubuntu22.02", "CentOS", "Fedora"]
-
-editingSlice = currentSlice(
-    "SliceG7",
-    "Anillo",
-    "Grupo1",
-    "192.168.100.0/24",
-    [VM("vm1","Ubuntu22.02",5901,1024,51232,2,"ON"),
-     VM("localServer","CentOS",5903,1024,20128,2,"OFF"),
-     VM("web_app","Ubuntu22.02",5904,1024,51232,2,"ON")],
-     [("vm1","vm2"),("vm2","localServer"),("localServer","web_app"),("web_app","vm1")]
-)
-
-def changeCurrent(slice_env):
-    global editingSlice
+lista_imagenes :list[str]
+lista_grupos:list[str]
+editingSlice : currentSlice
+list_slices : list[currentSlice]
+def changeCurrent(slice_env,imagenes_env,grupos_env,slices_env):
+    global editingSlice,lista_imagenes,lista_grupos,list_slices
     editingSlice = slice_env
+    lista_imagenes= [x.nombre for x in imagenes_env]
+    lista_grupos=[x.nombre for x in grupos_env]
+    list_slices = slices_env
+    print(lista_imagenes)
+    print(lista_grupos)
+
 CLOSE = False
 
 class Menu():
     def show_menu(self,opciones : list, funciones: list):
         global CLOSE
         if(len(opciones)!=len(funciones)): print("Error los parametros no tienen mismas cantidad de opciones."); return
-        for i in range(len(opciones)): print(f"{i+1}) {opciones[i]}")
-        print(f"{len(opciones)+1}) salir")
+        for i in range(len(opciones)): print(f"\t{i+1}) {opciones[i]}")
+        print(f"\t{len(opciones)+1}) salir")
         while True:
             inp1 = input("Seleccione una opcion: ")
             if(inp1 == str(len(opciones)+1)): return
@@ -73,8 +71,9 @@ class Menu():
                 print("No es una opcion valida...")
 
     def show(self):
-        opcionesMain = ["Listar VMs","Listar conexiones" ,"Iniciar/Detener VM", "Añadir VM", "Eliminar Slice"]
-        funcionesMain = [self.listVMs, self.mostrarConexiones,self.ini_det_vm, self.add_vm, self.delete_self]
+        global list_slices
+        opcionesMain = ["Listar VMs","Listar conexiones","Cambiar Grupo de seguridad" ,"Iniciar/Detener VM", "Añadir VM", "Eliminar Slice"]
+        funcionesMain = [self.listVMs, self.mostrarConexiones, self.cambiarGrupoS,self.ini_det_vm, self.add_vm, self.delete_self]
         self.show_menu(opcionesMain, funcionesMain)
         print("Saliendo de la edición de slice...")
     def listVMs(self):
@@ -94,12 +93,31 @@ class Menu():
             vm_prelist = [vm for vm in editingSlice.lista_vm if inp2 in vm.nombreVM]
             vm_list = [list(vars(vm).values()) for vm in vm_prelist]
             headers = ["Nombre", "OS", "VNC", "Memoria", "Storage", "VCPUs", "Estado"]
+            if(mostrarRequest("POST",{"busqueda_tipo":"filtro", "buscar": inp2 },"listar_vms")): return
             print(f"Mostrando coincidencias para {inp2}")
             print(tabulate(vm_list,headers=headers, tablefmt="fancy_grid"))
         else:        
             vm_list = [list(vars(vm).values()) for vm in editingSlice.lista_vm]
             headers = ["Nombre", "OS", "VNC", "Memoria", "Storage", "VCPUs", "Estado"]
+            if(mostrarRequest("POST",{"busqueda_tipo":"todo"},"listar_vms")): return
             print(tabulate(vm_list,headers=headers, tablefmt="fancy_grid"))
+    def cambiarGrupoS(self):
+        global editingSlice
+        global lista_grupos
+        if(mostrarRequest("POST",{"busqueda_tipo":"todo"},"listar_grupos")): return
+        actualName = editingSlice.grupo_seguridad
+        print("Mostrando grupos de seguridad: ")
+        lista_tabla = [[x,"Actual" if x==actualName else "***"] for x in lista_grupos]
+        headers = ["Grupo de seguridad","Activado"]
+        print(tabulate(lista_tabla,headers=headers, tablefmt="fancy_grid"))
+        while(inp1:=input("Ingrese el nombre del grupo: ").strip()) not in lista_grupos:
+            print("No ha ingresado un grupo existente**")
+        if(inp1==actualName): print("No se ha seleccionado un nuevo grupo..."); return
+        print("Cambiando grupo...")
+        time.sleep(1)
+        if(mostrarRequest("POST",{"grupo":inp1},"updategrupo")): return
+        print("Se ha cambiado el grupo exitosamente")
+
     def ini_det_vm(self):
         global editingSlice
         inp1=""
@@ -117,7 +135,6 @@ class Menu():
             error=mostrarRequest("POST",{"vm_nombre":vm.nombreVM},"apagar")
             time.sleep(2)
             if(error): return
-
             vm.estado="OFF"
             print(f"La vm {vm.nombreVM} se ha apagado")
         else:
@@ -148,7 +165,6 @@ class Menu():
         storage = int (storage)
         while(vcpus := input("Indique los vcpu que necesitara su vm(max 2): ").strip()).isdigit()==False or int(vcpus)>2:
             print("No ha ingresado un valor aceptable:")
-        
         print("Creando vm...")
         time.sleep(1)
         vcpus = int (vcpus)
@@ -175,7 +191,6 @@ class Menu():
             vm_cn= editingSlice.lista_vm[vm_cnidx-1]
             conexion = (vm_cn.nombreVM, vm_name)
             editingSlice.conexiones.append(conexion)
-
         elif(editingSlice.topologia.lower()=="anillo"):
             editingSlice.conexiones.pop()
             conexion1 = (editingSlice.lista_vm[0].nombreVM, vm_name)
@@ -185,10 +200,10 @@ class Menu():
         elif(editingSlice.topologia.lower()=="lineal"):
             editingSlice.conexiones.append((editingSlice.lista_vm[-1].nombreVM,vm_name))
 
-
     def mostrarConexiones(self):
         global editingSlice
         conexiones =  editingSlice.conexiones
+        if(mostrarRequest("POST",{"listar_conextions":"all"},"listar_conexiones")): return
         list_vm = [x.nombreVM for x  in editingSlice.lista_vm]
         if(list_vm==0): print("No hay vms creadas aun...");return
         list_cons=[]
@@ -212,15 +227,17 @@ class Menu():
         print(tabulate(list_cons,headers=headers, tablefmt="fancy_grid"))
     def delete_self(self):
         global CLOSE
+        global editingSlice
+        global list_slices
         inp1=input("Estas seguro de querer borrar el slice presente?:\nEscriba: si, quiero borrar el slice\n")
         if inp1=="si, quiero borrar el slice":
             print("Borrando slice...")
             error=mostrarRequest("POST", {},"eliminar_slice")
-            time.sleep(2)
             if(error): return
-            time.sleep(2)
+            time.sleep(1)
             print("El slice ha sido borrado")
             time.sleep(1)
+            list_slices.remove(editingSlice)
             CLOSE=True
         else:
             print("Se cancela la operacion...")
