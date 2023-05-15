@@ -141,7 +141,7 @@ if __name__=="__main__":
                 print(f"Mostrando todos los slices")
                 print(tabulate(list_slices,headers=headers, tablefmt="fancy_grid"))
         if opt==2:
-            s.crearSlice(datos["gruposSeguridad"])
+            s.crearSlice(datos["slices"],datos["gruposSeguridad"])
         if opt==3:
             list_slices_names = [x.nombre for x in datos["slices"]]
             while(inp1:=input("Ingrese el nombre el slice: ")) not in list_slices_names:
