@@ -1,8 +1,10 @@
 import modUtilidades as util
-from typing import List
+from typing import List, Dict, Any
 from dataclasses import dataclass
 from funcionesMenu.reglasSeguridad import GrupoSeguridad
 from time import sleep
+import json
+from random import choices
 
 @dataclass
 class Slice:
@@ -10,19 +12,36 @@ class Slice:
     topologia: str
     secGroup: str
 
-# Lista provisional
-listaSlices:List[Slice] = []
+def mostrarRequest(method:str, body:Dict[str,Any], action:str, razon:str) -> bool:
+    print(f"Method: {method}\nURL: https://10.20.17.101/orquestador")
 
+    body["user_token"] = "aidba8hd8g38bd2397gf29323d2"      # info usuario
+    body["action"] = action                                 # info acción
 
+    print(f"Body:\n{json.dumps(body,indent=4)}")            # Se imprime el body
+    sleep(2)
 
-def listarSlices():
+    # Imprime la respuesta del servidr
+    respuesta = choices(["exito","error"],weights=[0.8,0.2])[0]
+    print(f"Respuesta: {respuesta}")
+    if respuesta=="error": 
+        print(f"Ha ocurrido un error **{razon}**")
+        return False
+    return True
+
+def listarSlices(listaSlices:List[Slice]):
     "Lista los slices activos"
 
-    print("")
-    for idx,sliceObj in enumerate(listaSlices):
-        print(f"\t{idx+1}) {sliceObj.nombre}")
+    if mostrarRequest("GET",{},"listSlices","Hubo un problema de conexión"):
+        print("")
+        if len(listaSlices) == 0:
+            print("No existe ningún slice")
+            return
 
-def crearSlice(listaGrupos:List[GrupoSeguridad]) -> None:
+        for idx,sliceObj in enumerate(listaSlices):
+            print(f"\t{idx+1}) {sliceObj.nombre}")
+
+def crearSlice(listaSlices:List[Slice],listaGrupos:List[GrupoSeguridad]) -> None:
     """Crea un slice, preguntando por la topología base, y los
     equipos iniciales"""
     
@@ -46,9 +65,11 @@ def crearSlice(listaGrupos:List[GrupoSeguridad]) -> None:
             if nombre != "":
                 print("\nCreando Grupo de seguridad...")
                 grupo = GrupoSeguridad(nombre,[])
-                listaGrupos.append(grupo)
-                sleep(1)
-                print(f"Grupo {nombre} creado exitosamente!")
+
+                if mostrarRequest("POST",{"nombre":nombre},"newSecGroup","Error de conexión"):
+                    listaGrupos.append(grupo)
+                    sleep(1)
+                    print(f"Grupo {nombre} creado exitosamente!")
                 break
             
             else:
@@ -61,30 +82,8 @@ def crearSlice(listaGrupos:List[GrupoSeguridad]) -> None:
     
     # Se crea el Slice
     print(f"\nCreando slice {nameSlice}...")
-    sleep(1)
-
-    listaSlices.append(Slice(nameSlice,topologia,grupo.nombre))
-    print(f"Slice {nameSlice} creado")
-
-def editarSlice():
-    nombre = input("Ingrese el nombre de un slice [Por defecto: Listar todos]: ").strip()
-    sliceObj:Slice = util.buscarPorNombre(nombre,listaSlices)
-
-    if sliceObj is None:
-        return
-
-    while True:
-        print("\nAcciones disponibles para realizar:")
-        print("\t1) Agregar nodo")
-        print("\t2) Agregar enlace")
-        print("\t3) Agregar VM")
-        print("\t4) Salir")
-        
-        # Se pide elegir una opción
-        opt = input(f"> Elija una opción [1-4]: ").strip()
-        if util.validarOpcionNumerica(opt,4):
-            print(f"\nEditando slice {sliceObj.nombre}")
-
-
-        else:
-            print("Debe ingresar una opción válida")
+    if mostrarRequest("POST",{"nombre":nameSlice,"topologia":topologia,"secGroup":grupo.nombre},
+                      "newSlice", "El servidor no pudo procesar su solicitud. Vuelva a intentarlo más tarde"):
+        sleep(1)
+        listaSlices.append(Slice(nameSlice,topologia,grupo.nombre))
+        print(f"Slice {nameSlice} creado")

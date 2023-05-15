@@ -37,8 +37,8 @@ def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
     if len(listaCoincidencias) == 0:
         print(f"\nNo hubieron coincidencias buscando {nombre}")
         return
-    elif len(listaCoincidencias) == 1:
-        print(f"\nSe encontró 1 coicidencia: {listaCoincidencias[0].nombre}")
+    elif len(listaCoincidencias) == 1 and nombre != "":
+        print(f"\nSe encontró 1 coincidencia: {listaCoincidencias[0].nombre}")
         return listaCoincidencias[0]
     
     # Si hay más de un resultado, los listamos y le pedimos al usuario elegir
@@ -52,9 +52,8 @@ def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
         
         opt = input(f"> Elija una opción [1-{len(listaCoincidencias)}]: ").strip()
         if validarOpcionNumerica(opt,len(listaCoincidencias)):
-            print(f"\nSe encontró 1 coicidencia: {nombre}")
             return listaCoincidencias[int(opt)-1]
         else:
-            print("\nHa ingresado una opción inválida\n")
+            print("\nHa ingresado una opción inválida")
             return
 

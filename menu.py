@@ -54,9 +54,9 @@ if __name__=="__main__":
                               "Salir"])
 
         if opt==1:
-            s.listarSlices()
+            s.listarSlices(datos["slices"])
         if opt==2:
-            s.crearSlice(datos["gruposSeguridad"])
+            s.crearSlice(datos["slices"],datos["gruposSeguridad"])
         if opt==3:
             editSlice.start()
         if opt==4:
