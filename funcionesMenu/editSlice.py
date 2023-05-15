@@ -6,7 +6,10 @@ import json
 import random
 import time
 import math
-
+import menu as mainprojectMenu
+from tabulate import tabulate
+from funcionesMenu.Imagen import Imagen
+from funcionesMenu.reglasSeguridad import GrupoSeguridad
 
 @dataclass
 class currentSlice:
@@ -37,30 +40,26 @@ def mostrarRequest(method,body,action):
     
 
 
-lista_imagenes=["Cirros0.61", "Ubuntu22.02", "CentOS", "Fedora"]
+lista_imagenes :list[str]
+lista_grupos:list[str]
+editingSlice : currentSlice
 
-editingSlice = currentSlice(
-    "SliceG7",
-    "Anillo",
-    "Grupo1",
-    "192.168.100.0/24",
-    [VM("vm1","Ubuntu22.02",5901,1024,51232,2,"ON"),
-     VM("localServer","CentOS",5903,1024,20128,2,"OFF"),
-     VM("web_app","Ubuntu22.02",5904,1024,51232,2,"ON")],
-     [("vm1","vm2"),("vm2","localServer"),("localServer","web_app"),("web_app","vm1")]
-)
-
-def changeCurrent(slice_env):
-    global editingSlice
+def changeCurrent(slice_env,imagenes_env,grupos_env):
+    global editingSlice,lista_imagenes,lista_grupos
     editingSlice = slice_env
+    lista_imagenes= [x.nombre for x in imagenes_env]
+    lista_grupos=[x.nombre for x in grupos_env]
+    print(lista_imagenes)
+    print(lista_grupos)
+
 CLOSE = False
 
 class Menu():
     def show_menu(self,opciones : list, funciones: list):
         global CLOSE
         if(len(opciones)!=len(funciones)): print("Error los parametros no tienen mismas cantidad de opciones."); return
-        for i in range(len(opciones)): print(f"{i+1}) {opciones[i]}")
-        print(f"{len(opciones)+1}) salir")
+        for i in range(len(opciones)): print(f"\t{i+1}) {opciones[i]}")
+        print(f"\t{len(opciones)+1}) salir")
         while True:
             inp1 = input("Seleccione una opcion: ")
             if(inp1 == str(len(opciones)+1)): return
@@ -73,8 +72,8 @@ class Menu():
                 print("No es una opcion valida...")
 
     def show(self):
-        opcionesMain = ["Listar VMs","Listar conexiones" ,"Iniciar/Detener VM", "Añadir VM", "Eliminar Slice"]
-        funcionesMain = [self.listVMs, self.mostrarConexiones,self.ini_det_vm, self.add_vm, self.delete_self]
+        opcionesMain = ["Listar VMs","Listar conexiones","Cambiar Grupo de seguridad" ,"Iniciar/Detener VM", "Añadir VM", "Eliminar Slice"]
+        funcionesMain = [self.listVMs, self.mostrarConexiones, self.cambiarGrupoS,self.ini_det_vm, self.add_vm, self.delete_self]
         self.show_menu(opcionesMain, funcionesMain)
         print("Saliendo de la edición de slice...")
     def listVMs(self):
@@ -100,6 +99,23 @@ class Menu():
             vm_list = [list(vars(vm).values()) for vm in editingSlice.lista_vm]
             headers = ["Nombre", "OS", "VNC", "Memoria", "Storage", "VCPUs", "Estado"]
             print(tabulate(vm_list,headers=headers, tablefmt="fancy_grid"))
+    def cambiarGrupoS(self):
+        global editingSlice
+        global lista_grupos
+        actualName = editingSlice.grupo_seguridad
+        print("Mostrando grupos de seguridad: ")
+        lista_tabla = [[x,"Actual" if x==actualName else "***"] for x in lista_grupos]
+        headers = ["Grupo de seguridad","Activado"]
+        print(tabulate(lista_tabla,headers=headers, tablefmt="fancy_grid"))
+        while(inp1:=input("Ingrese el nombre del grupo: ").strip()) not in lista_grupos:
+            print("No ha ingresado un grupo existente**")
+        if(inp1==actualName): print("No se ha seleccionado un nuevo grupo..."); return
+        print("Cambiando grupo...")
+        time.sleep(1)
+        if(mostrarRequest("POST",{"grupo":inp1},"updategrupo")): return
+        print("Se ha cambiado el grupo exitosamente")
+    
+
     def ini_det_vm(self):
         global editingSlice
         inp1=""
