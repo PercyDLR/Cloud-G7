@@ -1,7 +1,9 @@
 import modUtilidades as util
+import funcionesMenu.editSlice as editSlice
 import funcionesMenu.Slice as s
 import funcionesMenu.Imagen as img
 import funcionesMenu.reglasSeguridad as r
+import clases
 import subprocess
 import json
 import hashlib
@@ -30,6 +32,7 @@ def obtenerDatos() -> Dict[str, List[Any]]:
 
 # Función Main
 if __name__=="__main__":
+    
 
     # Presentación del Grupo
     print("\n################ Orquestador G7 ################")
@@ -38,7 +41,7 @@ if __name__=="__main__":
     print("--- Percy De La Rosa Vera\t\t20192265")
     print("################################################")
 
-    login()
+    #login()
     datos = obtenerDatos()
     
     while True:
@@ -55,7 +58,7 @@ if __name__=="__main__":
         if opt==2:
             s.crearSlice()
         if opt==3:
-            s.editarSlice()
+            editSlice.start()
         if opt==4:
             r.main(datos["gruposSeguridad"])
         if opt==5:

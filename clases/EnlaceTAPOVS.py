@@ -4,4 +4,4 @@ from dataclasses import dataclass
 class EnlaceTAPOVS:
     nombrVM= str
     nombreOVS = str
-    
+    vxlan_vni = int
