@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import json
 import random
 import time
+import math
 
 
 @dataclass
@@ -25,7 +26,7 @@ def mostrarRequest(method,body,action):
     print(f"Body:\n{json.dumps(body,indent=4)}")
     print("Send and waiting for response")
     time.sleep(2)
-    respuesta = random.choice(["exito","error"])
+    respuesta = random.choices(["exito","error"],weights=[0.67,0.33])[0]
     print(f"Response: {respuesta}")
     razon=""
     if respuesta=="error": 
@@ -44,7 +45,6 @@ editingSlice = currentSlice(
     "Grupo1",
     "192.168.100.0/24",
     [VM("vm1","Ubuntu22.02",5901,1024,51232,2,"ON"),
-     VM("vm2","Cirros0.61",5902,1024,51232,1,"OFF"),
      VM("localServer","CentOS",5903,1024,20128,2,"OFF"),
      VM("web_app","Ubuntu22.02",5904,1024,51232,2,"ON")],
      [("vm1","vm2"),("vm2","localServer"),("localServer","web_app"),("web_app","vm1")]
@@ -73,8 +73,8 @@ class Menu():
                 print("No es una opcion valida...")
 
     def show(self):
-        opcionesMain = ["Listar VMs", "Iniciar/Detener VM", "Añadir VM", "Eliminar Slice"]
-        funcionesMain = [self.listVMs, self.ini_det_vm, self.add_vm, self.delete_self]
+        opcionesMain = ["Listar VMs","Listar conexiones" ,"Iniciar/Detener VM", "Añadir VM", "Eliminar Slice"]
+        funcionesMain = [self.listVMs, self.mostrarConexiones,self.ini_det_vm, self.add_vm, self.delete_self]
         self.show_menu(opcionesMain, funcionesMain)
         print("Saliendo de la edición de slice...")
     def listVMs(self):
@@ -128,7 +128,7 @@ class Menu():
             if(error): return
             vm.estado="ON"
             print(f"La vm {vm.nombreVM} se ha encendido")
-
+            
     def add_vm(self):
         global lista_imagenes
         global editingSlice
@@ -161,14 +161,55 @@ class Menu():
         editingSlice.lista_vm.append(vm)
         print("Su vm se ha creado con exito")
         vm_list = [list(vars(vm).values())]
+        self.instalarConexion(name)
         headers = ["Nombre", "OS", "VNC", "Memoria", "Storage", "VCPUs", "Estado"]
         print(tabulate(vm_list,headers=headers, tablefmt="fancy_grid"))
         print(f"Si desea conectarse a su VM puede realizar una conexion VNC a la direccion 10.20.17.101 en el puerto {vnc}")
 
+    def instalarConexion(self,vm_name):
+        global editingSlice
+        if(editingSlice.topologia.lower()=="arbol"):
+            cant =len(editingSlice.lista_vm)
+            vm_num = cant+1
+            vm_cnidx=  math.floor(vm_num/2)
+            vm_cn= editingSlice.lista_vm[vm_cnidx-1]
+            conexion = (vm_cn.nombreVM, vm_name)
+            editingSlice.conexiones.append(conexion)
+
+        elif(editingSlice.topologia.lower()=="anillo"):
+            editingSlice.conexiones.pop()
+            conexion1 = (editingSlice.lista_vm[0].nombreVM, vm_name)
+            conexion2 = (editingSlice.lista_vm[-2].nombreVM, vm_name)
+            editingSlice.conexiones.append(conexion1)
+            editingSlice.conexiones.append(conexion2)
+        elif(editingSlice.topologia.lower()=="lineal"):
+            editingSlice.conexiones.append((editingSlice.lista_vm[-1].nombreVM,vm_name))
+
+
     def mostrarConexiones(self):
         global editingSlice
-        
-
+        conexiones =  editingSlice.conexiones
+        list_vm = [x.nombreVM for x  in editingSlice.lista_vm]
+        if(list_vm==0): print("No hay vms creadas aun...");return
+        list_cons=[]
+        for x in list_vm:
+            cont = 0
+            vms =""
+            for y,z in conexiones:
+                if(y == x):
+                    vms+= (z) if cont==0 else (","+z)
+                    cont+=1
+                elif(z == x):
+                    vms+= (y) if cont==0 else (","+z)
+                    cont+=1
+            if(editingSlice.nombre.lower()=="bus"):
+                cont=1; vms="Todas"
+            if(editingSlice.nombre.lower()=="malla"):
+                vms="Todas"; cont=len(list_vm)-1
+            list_cons.append([x,str(cont),vms])
+        headers = ["VM Nombre", "Cant Conexiones","Equipos conectados"]
+        print(f"Topologia del slice: {editingSlice.topologia.title()}")
+        print(tabulate(list_cons,headers=headers, tablefmt="fancy_grid"))
     def delete_self(self):
         global CLOSE
         inp1=input("Estas seguro de querer borrar el slice presente?:\nEscriba: si, quiero borrar el slice\n")
