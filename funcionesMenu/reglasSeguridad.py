@@ -184,7 +184,7 @@ def main(listaGrupos:List[GrupoSeguridad]) -> None:
             if mostrarRequest("POST",{"secGroup":grupo.nombre},"rmSecRule","Error de conexión"):
                 sleep(1)
                 listaGrupos.remove(grupo)
-                print(f"Grupo {nombre} eliminado exitosamente!")
+                print(f"Grupo {grupo.nombre} eliminado exitosamente!")
 
         if opt == 5:
             print("Saliendo de la configuración de Grupos de Seguridad...")
