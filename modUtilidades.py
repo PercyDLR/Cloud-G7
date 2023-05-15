@@ -24,7 +24,7 @@ def validarOpcionNumerica(opt:str,max:int,) -> bool:
 
     return opt.isdigit() and (int(opt)>=1 and int(opt)<=max)  
     
-def buscarPorNombre(nombre:str,lista:List) -> Any:
+def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
     "Busca un elemento en una lista por su nombre"
 
     # Se buscan todas las coincidencias

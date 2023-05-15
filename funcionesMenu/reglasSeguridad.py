@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict, Any
 import modUtilidades as util
 from time import sleep
 from ipaddress import ip_address
+import json
 
 @dataclass
 class Regla:
@@ -21,6 +22,22 @@ class Regla:
 class GrupoSeguridad:
     nombre:str
     reglas:List[Regla]
+
+def mostrarRequest(method:str, body:Dict[str,Any], action:str, respuesta:str):
+    print(f"Method: {method}\nURL: https://10.20.17.101/orquestador")
+
+    body["user_token"] = "aidba8hd8g38bd2397gf29323d2"      # info usuario
+    body["action"] = action                                 # info acción
+
+    print(f"Body:\n{json.dumps(body,indent=4)}")            # Se imprime el body
+    sleep(2)
+    print(f"Respuesta: {respuesta}")
+    razon=""
+    if respuesta=="error": 
+        razon="Hay una sobrecarga con el servidor"
+        print(f"Ha ocurrido un error **{razon}**")
+        return True
+    return False
 
 def main(listaGrupos:List[GrupoSeguridad]) -> None:
     "Administra los grupos de seguridad"
@@ -61,7 +78,7 @@ def main(listaGrupos:List[GrupoSeguridad]) -> None:
 
         # Se edita un grupo de seguridad existente
         if opt == 3:
-            nombre = input("> Ingrese un nombre para el securityGroup [default: Listar Todos]: ").strip()
+            nombre = input("> Ingrese el nombre del grupo [default: Listar Todos]: ").strip()
 
             # Se escoge el grupo de seguridad
             grupo:GrupoSeguridad = util.buscarPorNombre(nombre,listaGrupos)

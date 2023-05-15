@@ -1,29 +1,69 @@
 import modUtilidades as util
 from typing import List
+from dataclasses import dataclass
+from funcionesMenu.reglasSeguridad import GrupoSeguridad
+from time import sleep
 
+@dataclass
 class Slice:
-    def __init__(self,nombre:str) -> None:
-        self.nombre = nombre
+    nombre: str
+    topologia: str
+    secGroup: str
 
 # Lista provisional
-listaSlices:List[Slice] = [Slice("xd"),Slice("slice1")]
+listaSlices:List[Slice] = []
 
-## Iniciamos el CRUD
+
 
 def listarSlices():
     "Lista los slices activos"
+
+    print("")
     for idx,sliceObj in enumerate(listaSlices):
         print(f"\t{idx+1}) {sliceObj.nombre}")
 
-def crearSlice():
+def crearSlice(listaGrupos:List[GrupoSeguridad]) -> None:
     """Crea un slice, preguntando por la topología base, y los
     equipos iniciales"""
     
-    nameSlice = input("Ingrese nombre del Slice a crear: ").strip()
+    # Petición de datos
+    nameSlice = input("\n> Ingrese nombre del Slice a crear: ").strip()
     
-    # TODO: Código para crear el slice
+    # Se elige una topología
+    listaTopologias = ["Elija una topologia base para el slice:",
+                       "Lineal", "Malla", "Arbol", "Anillo", "Bus"]
+    opt = util.printMenu(listaTopologias)
+    topologia = listaTopologias[opt]
+
+    # Se crea un nuevo grupo de seguridad
+    if len(listaGrupos) == 0:
+
+        print("\nNo existen grupos de seguridad. Creando uno nuevo...")
+
+        while True:
+            nombre = input("\n> Ingrese un nombre para el grupo de seguridad: ").strip()
+
+            if nombre != "":
+                print("\nCreando Grupo de seguridad...")
+                grupo = GrupoSeguridad(nombre,[])
+                listaGrupos.append(grupo)
+                sleep(1)
+                print(f"Grupo {nombre} creado exitosamente!")
+                break
+            
+            else:
+                print("\nDebe ingresar un nombre para el grupo")
+    
+    # Se elije un grupo ya existente
+    else:
+        nombre = input("> Ingrese el nombre del grupo [default: Listar Todos]: ").strip()
+        grupo:GrupoSeguridad = util.buscarPorNombre(nombre,listaGrupos)
+    
+    # Se crea el Slice
     print(f"\nCreando slice {nameSlice}...")
-    listaSlices.append(Slice(nameSlice))
+    sleep(1)
+
+    listaSlices.append(Slice(nameSlice,topologia,grupo.nombre))
     print(f"Slice {nameSlice} creado")
 
 def editarSlice():

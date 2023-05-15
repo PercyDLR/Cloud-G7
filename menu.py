@@ -56,7 +56,7 @@ if __name__=="__main__":
         if opt==1:
             s.listarSlices()
         if opt==2:
-            s.crearSlice()
+            s.crearSlice(datos["gruposSeguridad"])
         if opt==3:
             editSlice.start()
         if opt==4:
