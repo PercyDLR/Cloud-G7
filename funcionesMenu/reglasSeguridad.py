@@ -3,6 +3,7 @@ from typing import List, Dict, Any
 import modUtilidades as util
 from time import sleep
 from ipaddress import ip_address
+from random import choices
 import json
 
 @dataclass
@@ -23,7 +24,7 @@ class GrupoSeguridad:
     nombre:str
     reglas:List[Regla]
 
-def mostrarRequest(method:str, body:Dict[str,Any], action:str, respuesta:str):
+def mostrarRequest(method:str, body:Dict[str,Any], action:str, razon:str):
     print(f"Method: {method}\nURL: https://10.20.17.101/orquestador")
 
     body["user_token"] = "aidba8hd8g38bd2397gf29323d2"      # info usuario
@@ -31,13 +32,13 @@ def mostrarRequest(method:str, body:Dict[str,Any], action:str, respuesta:str):
 
     print(f"Body:\n{json.dumps(body,indent=4)}")            # Se imprime el body
     sleep(2)
+    
+    respuesta = choices(["exito","error"],weights=[1,0])[0]
     print(f"Respuesta: {respuesta}")
-    razon=""
     if respuesta=="error": 
-        razon="Hay una sobrecarga con el servidor"
         print(f"Ha ocurrido un error **{razon}**")
-        return True
-    return False
+        return False
+    return True
 
 def main(listaGrupos:List[GrupoSeguridad]) -> None:
     "Administra los grupos de seguridad"
@@ -69,10 +70,11 @@ def main(listaGrupos:List[GrupoSeguridad]) -> None:
             listaNombres = [grupo.nombre for grupo in listaGrupos]
 
             if nombre not in listaNombres:
-                print("\nCreando Grupo de seguridad...")
-                listaGrupos.append(GrupoSeguridad(nombre,[]))
-                sleep(1)
-                print(f"Grupo {nombre} creado exitosamente!")
+                if mostrarRequest("POST", {"nombre":nombre},"newSecGroup","Error de conexión"):
+                    print("\nCreando Grupo de seguridad...")
+                    listaGrupos.append(GrupoSeguridad(nombre,[]))
+                    sleep(1)
+                    print(f"Grupo {nombre} creado exitosamente!")
             else:
                 print(f"\nEl nombre {nombre} ya existe, elija otro\n")
 
@@ -86,18 +88,21 @@ def main(listaGrupos:List[GrupoSeguridad]) -> None:
             while True:
                 try: 
                     opt2 = util.printMenu([f"Configuración del grupo {grupo.nombre}:",
-                                "Listar Reglas", "Editar Reglas", "Eliminar Regla", "Salir"])
+                                "Listar Reglas", "Crear Reglas", "Eliminar Regla", "Salir"])
                 except AttributeError:
                     break
 
                 if opt2 == 1:
                     sleep(1)
                     print("")
+
+                    if mostrarRequest("GET", {"secGroup":grupo.nombre},"listSecRules","Error de conexión"):
+                        print("")
+                        for regla in grupo.reglas:
+                            print(f"\t{regla}") 
+                            
                     if len(grupo.reglas) == 0:
                         print("No hay reglas creadas para este grupo")
-
-                    for regla in grupo.reglas:
-                        print(f"\t{regla}") 
                 
                 elif opt2 == 2:
                     nombre = input("\n> Ingrese un nombre para la regla: ").strip()
@@ -139,10 +144,14 @@ def main(listaGrupos:List[GrupoSeguridad]) -> None:
                             print("El protocolo ingresado no es válido")
                             continue
 
-                        print("\nCreando Grupo de seguridad...")
-                        sleep(1)
-                        grupo.reglas.append(Regla(nombre,srcIP,dstIP,protocolo.lower(),puerto,True,"Activo"))
-                        print(f"Grupo {nombre} creado exitosamente!")
+                        print("\nCreando regla de seguridad...")
+                        
+                        body = {"secGroup":grupo.nombre,"nombre":nombre,"srcIP":srcIP,"dstIP":dstIP,"protocolo":protocolo.lower(),"puerto":puerto}
+                        
+                        if mostrarRequest("POST", body,"newSecRule","Error de conexión"):
+                            sleep(1)
+                            grupo.reglas.append(Regla(nombre,srcIP,dstIP,protocolo.lower(),puerto,True,"Activo"))
+                            print(f"Regla {nombre} creada exitosamente!")
                     else:
                         print(f"\nEl nombre {nombre} ya existe, elija otro\n")
                 
@@ -152,9 +161,11 @@ def main(listaGrupos:List[GrupoSeguridad]) -> None:
                     regla:Regla = util.buscarPorNombre(nombre,grupo.reglas)
                     
                     print("\nEliminando regla de seguridad...")
-                    sleep(1)
-                    grupo.reglas.remove(regla)
-                    print(f"La regla {regla.nombre} ha sido eliminada")
+                    
+                    if mostrarRequest("POST", {"secGroup":grupo.nombre,"nombre":regla.nombre},"rmSecRule","Error de conexión"):
+                        sleep(1)
+                        grupo.reglas.remove(regla)
+                        print(f"La regla {regla.nombre} ha sido eliminada")
 
                 elif opt2 == 4:
                     break
@@ -167,7 +178,7 @@ def main(listaGrupos:List[GrupoSeguridad]) -> None:
             
             # Se elimina
             print("\nEliminando Grupo de seguridad...")
-            if mostrarRequest("POST",{"secGroup":grupo.nombre},"rmSecRule","Error de conexión"):
+            if mostrarRequest("POST",{"secGroup":grupo.nombre},"rmSecGroup","Error de conexión"):
                 sleep(1)
                 listaGrupos.remove(grupo)
                 print(f"Grupo {grupo.nombre} eliminado exitosamente!")

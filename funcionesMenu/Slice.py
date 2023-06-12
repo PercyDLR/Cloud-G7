@@ -5,6 +5,7 @@ from funcionesMenu.reglasSeguridad import GrupoSeguridad
 from time import sleep
 import json
 from random import choices
+from funcionesMenu.editSlice import currentSlice
 
 @dataclass
 class Slice:
@@ -22,7 +23,7 @@ def mostrarRequest(method:str, body:Dict[str,Any], action:str, razon:str) -> boo
     sleep(2)
 
     # Imprime la respuesta del servidr
-    respuesta = choices(["exito","error"],weights=[0.8,0.2])[0]
+    respuesta = choices(["exito","error"],weights=[1,0])[0]
     print(f"Respuesta: {respuesta}")
     if respuesta=="error": 
         print(f"Ha ocurrido un error **{razon}**")
@@ -41,7 +42,7 @@ def listarSlices(listaSlices:List[Slice]):
         for idx,sliceObj in enumerate(listaSlices):
             print(f"\t{idx+1}) {sliceObj.nombre}")
 
-def crearSlice(listaSlices:List[Slice],listaGrupos:List[GrupoSeguridad]) -> None:
+def crearSlice(listaSlices:List[currentSlice],listaGrupos:List[GrupoSeguridad]) -> None:
     """Crea un slice, preguntando por la topología base, y los
     equipos iniciales"""
     
@@ -78,12 +79,16 @@ def crearSlice(listaSlices:List[Slice],listaGrupos:List[GrupoSeguridad]) -> None
     # Se elije un grupo ya existente
     else:
         nombre = input("> Ingrese el nombre del grupo [default: Listar Todos]: ").strip()
-        grupo:GrupoSeguridad = util.buscarPorNombre(nombre,listaGrupos)
+        while (grupo:= util.buscarPorNombre(nombre,listaGrupos)) == None:
+            print("Opción no valida...")
+        
+        
     
     # Se crea el Slice
     print(f"\nCreando slice {nameSlice}...")
     if mostrarRequest("POST",{"nombre":nameSlice,"topologia":topologia,"secGroup":grupo.nombre},
                       "newSlice", "El servidor no pudo procesar su solicitud. Vuelva a intentarlo más tarde"):
         sleep(1)
-        listaSlices.append(Slice(nameSlice,topologia,grupo.nombre))
+        #listaSlices.append(Slice(nameSlice,topologia,grupo.nombre))
+        listaSlices.append(currentSlice(nameSlice,topologia,grupo.nombre,"",[],[]))
         print(f"Slice {nameSlice} creado")

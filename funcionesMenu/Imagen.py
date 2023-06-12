@@ -25,7 +25,7 @@ def mostrarRequest(method,body,action,nombre,path):
     print(f"Body:\n{json.dumps(body,indent=4)}")
     print("Send and waiting for response")
     time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[0.67,0.33])[0]
+    respuesta = random.choices(["exito","error"],weights=[1,0])[0]    
     print(f"Response: {respuesta}")
     if respuesta=="error": 
         if action=="crearImg":
@@ -47,6 +47,7 @@ def menuImg(listaImagenes: List[Imagen]) -> None:
         if opt == 1:
             sleep(1)
             print("")
+            
             if len(listaImagenes) == 0:
                 print("No hay imágenes de disco almacenadas")
 
@@ -59,13 +60,16 @@ def menuImg(listaImagenes: List[Imagen]) -> None:
 
             # Si es web, se guarda el link
             # Si es un archivo local, guardamos su ubicación
-            print("\nImportando imagen...")
-            img = Imagen(nombreImg,path)
-            sleep(1)
-            error = mostrarRequest("POST",{"name":img.nombre},"crearImagen",img.nombre,img.path)
-            time.sleep(2)
-            if(error): return
-            listaImagenes.append(img)
+            if exists(path):
+                print("\nImportando imagen...")
+                img = Imagen(nombreImg,path)
+                sleep(1)
+                error = mostrarRequest("POST",{"name":img.nombre},"crearImagen",img.nombre,img.path)
+                if(error): return
+                listaImagenes.append(img)
+                print(f"Se ha importando la imagen {nombreImg} exitosamente.")
+            else:
+                print(f"\nNo existe imagen de disco en la ruta {path}")
                 
             
         # Se edita un grupo de seguridad existente
@@ -79,6 +83,7 @@ def menuImg(listaImagenes: List[Imagen]) -> None:
             time.sleep(2)
             if(error): return
             listaImagenes.remove(imagen)
+            print(f"Se ha eliminado la imagen {nombre} exitosamente.")
         
         if opt == 4:
             print("\nSaliendo de la configuración de Imagenes...")

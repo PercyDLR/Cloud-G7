@@ -24,7 +24,7 @@ def mostrarRequest(method,body,action,body_resp):
     print(f"Body:\n{json.dumps(body,indent=4)}")
     print("Send and waiting for response")
     time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[0.75,0.25])[0]
+    respuesta = random.choices(["exito","error"],weights=[1,0])[0]
     print(f"Response: {respuesta}")
     razon=""
     if respuesta=="error": 
@@ -42,7 +42,7 @@ def mostrarRequestafter(method,body,action,body_resp):
     print(f"Body:\n{json.dumps(body,indent=4)}")
     print("Send and waiting for response")
     time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[0.9,0.10])[0]
+    respuesta = random.choices(["exito","error"],weights=[1,0])[0]
     print(f"Response: {respuesta}")
     razon=""
     if respuesta=="error": 
@@ -106,7 +106,8 @@ if __name__=="__main__":
     print("--- Oliver A. Bustamante Sanchez\t20190981")
     print("--- Percy De La Rosa Vera\t\t20192265")
     print("################################################")
-    #login()
+    
+    login()
     print("Obteniendo datos")
     datos = obtenerDatos()
     datos_sesion_dict={}

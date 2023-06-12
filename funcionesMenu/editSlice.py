@@ -35,7 +35,7 @@ def mostrarRequest(method,body,action):
     print(f"Body:\n{json.dumps(body,indent=4)}")
     print("Send and waiting for response")
     time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[0.8,0.2])[0]
+    respuesta = random.choices(["exito","error"],weights=[1,0])[0]
     print(f"Response: {respuesta}")
     razon=""
     if respuesta=="error": 
