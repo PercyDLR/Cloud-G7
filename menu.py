@@ -1,3 +1,4 @@
+from colorama import Fore, Back, Style
 import modUtilidades as util
 import funcionesMenu.editSlice as editSlice
 import funcionesMenu.Slice as s
@@ -33,7 +34,7 @@ def obtenerDatos() -> Dict[str, List[Any]]:
 
 # Función Main
 if __name__=="__main__":
-    print("""\n################################################
+    print(Fore.CYAN+ """\n################################################
   ________                            _________ 
  /  _____/______ __ ________   ____   \\______  \\
 /   \\  __\\_  __ \\  |  \\____ \\ /  _ \\      /    /
@@ -49,12 +50,12 @@ if __name__=="__main__":
 
     
     IngresarCredenciales()
-    print("Obteniendo datos")
+    print("Obteniendo datos...")
     datos = obtenerDatos()
     datos_sesion_dict={}
 
     while True: 
-        opt = util.printMenu(["Opciones disponibles para realizar:",
+        opt = util.printMenu([Style.RESET_ALL +"Opciones disponibles para realizar:",
                               "Listar slices",
                               "Crear slice",
                               "Editar slice",
