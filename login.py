@@ -23,7 +23,7 @@ def verificarCredencialesExistentes():
             return True
         
     except FileNotFoundError as e:
-        print(e.strerror)
+        pass
     return False
 
 def IngresarCredenciales():
@@ -48,6 +48,14 @@ def IngresarCredenciales():
                         "password": password
                     }
                 }
+            },
+            "scope": {
+                "project": {
+                    "domain": {
+                        "name": "default"
+                    },
+                    "name": "admin"
+                }
             }
         }
     }
@@ -70,7 +78,7 @@ def IngresarCredenciales():
         variables.dic["token"] = token
         expiration = response_content["token"]["expires_at"]
         print("Autenticación exitosa")
-        print(f"Su token es: {token}")
+        # print(f"Su token es: {token}")
         # print(f"Su token expira en: {expiration}")
 
         with open("credencial.txt","w") as f:

@@ -33,12 +33,20 @@ def obtenerDatos() -> Dict[str, List[Any]]:
 
 # Función Main
 if __name__=="__main__":
-    # Presentación del Grupo
-    print("\n################ Orquestador G7 ################")
-    print("--- Elianne P. Ticse Espinoza\t\t20185361")
-    print("--- Oliver A. Bustamante Sanchez\t20190981")
-    print("--- Percy De La Rosa Vera\t\t20192265")
-    print("################################################")
+    print("""\n################################################
+  ________                            _________ 
+ /  _____/______ __ ________   ____   \\______  \\
+/   \\  __\\_  __ \\  |  \\____ \\ /  _ \\      /    /
+\\    \\_\\  \\  | \\/  |  /  |_> >  <_> )    /    / 
+ \\______  /__|  |____/|   __/ \\____/    /____/  
+        \\/            |__|                      
+################################################
+--- Elianne P. Ticse Espinoza\t\t20185361
+--- Oliver A. Bustamante Sanchez\t20190981
+--- Percy De La Rosa Vera\t\t20192265
+################################################
+    """)
+
     
     IngresarCredenciales()
     print("Obteniendo datos")
@@ -88,7 +96,7 @@ if __name__=="__main__":
             r.main()
 
         if opt == 4:
-            img.menuImg(datos["imagenes"])
+            img.menuImg()
 
         if opt == 5:
             print("Saliendo del programa...")

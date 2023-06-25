@@ -3,40 +3,22 @@ from typing import List
 import modUtilidades as util
 from time import sleep
 from os.path import exists
-import json
-import random
 import time
-import math
-
+import requests as req
+import variables as var
+from tabulate import tabulate
+from simple_term_menu import TerminalMenu
 
 @dataclass
 class Imagen:
     nombre:str
     path:str
-    
-def mostrarRequest(method,body,action,nombre,path):
-    print(f"Method: {method}")
-    print("URL: https://10.20.17.101/orquestador")
-    body["user_token"] = "aidba8hd8g38bd2397gf29323d2"
-    body["action"] = action
-    body["name"] = nombre
-    body["path"] = path
-    
-    print(f"Body:\n{json.dumps(body,indent=4)}")
-    print("Send and waiting for response")
-    time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[1,0])[0]    
-    print(f"Response: {respuesta}")
-    if respuesta=="error": 
-        if action=="crearImg":
-            print(f"\nNo existe imagen de disco en la ruta {path}")    
-        else:
-            print(f"\nNo se ha podido realizar la eliminación de la imagen.")   
-        return True
-    return False
 
-def menuImg(listaImagenes: List[Imagen]) -> None:
+def menuImg() -> None:
     "Administra imagenes nuevas/existentes"
+
+    IP_GATEWAY = var.dirrecionIP
+    headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
 
     while True:
         opt = util.printMenu(["Configuración de imagenes:",
@@ -45,8 +27,8 @@ def menuImg(listaImagenes: List[Imagen]) -> None:
                             "Eliminar imagen",                      
                             "Salir"])
         if opt == 1:
-            sleep(1)
-            print("")
+            response = req.get(f"http://{IP_GATEWAY}:9292/v2/images?sort=name:asc&status=active",headers=headers)
+            listaImagenes = response.json()["images"]
             
             if len(listaImagenes) == 0:
                 print("No hay imágenes de disco almacenadas")

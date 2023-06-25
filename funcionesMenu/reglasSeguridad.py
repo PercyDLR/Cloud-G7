@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 import modUtilidades as util
-from time import sleep
-from ipaddress import ip_address
 import requests as req
 import modUtilidades as util
 from ipaddress import ip_network
@@ -71,11 +69,12 @@ def main() -> None:
                 regla["id"],
                 regla["ethertype"],
                 regla["protocol"],
+                regla["port_range_min"] if regla["port_range_min"] is not None else "---",
                 regla["direction"],
                 regla["remote_ip_prefix"],
-                regla["description"],
+                regla["description"]
             ])
-        table = tabulate(table_data, headers=["ID","Eth Type", "Protocolo", "Dirección", "Rango IPs", "Descripción"], tablefmt="grid")
+        table = tabulate(table_data, headers=["ID","Eth Type", "Protocolo", "Puerto", "Dirección", "Rango IPs", "Descripción"], tablefmt="grid")
         print(f"\nReglas de Seguridad del grupo {grupo['name']}\n"+table)
 
         opt2 = util.printMenu(["Opciones Adicionales:","Agregar Regla","Salir"])
@@ -131,4 +130,4 @@ def main() -> None:
             else:
                 print(f"\nHubo un problema, error {response.status_code}")
 
-            ##TODO: Eliminar y Salir
+            ##TODO: Eliminar Grupo, Eliminar Regla y Salir
