@@ -3,8 +3,7 @@ import funcionesMenu.editSlice as editSlice
 import funcionesMenu.Slice as s
 import funcionesMenu.Imagen as img
 import funcionesMenu.reglasSeguridad as r
-import clases
-import subprocess
+from login import IngresarCredenciales
 import json
 import hashlib
 import getpass
@@ -15,7 +14,6 @@ from funcionesMenu.Imagen import Imagen
 from funcionesMenu.reglasSeguridad import GrupoSeguridad,Regla
 import time
 import random
-from dataclasses import dataclass, asdict
 
 def mostrarRequest(method,body,action,body_resp):
     print(f"Method: {method}")
@@ -52,31 +50,6 @@ def mostrarRequestafter(method,body,action,body_resp):
     print(f"Body:\n{json.dumps(body_resp,indent=4)}")
     return False
 
-def login() -> None:
-    "Implementa un logueo básico"
-    for intentos in range(3,0,-1):
-        username = input("\nIngrese su usuario: ").strip()
-        password = hashlib.sha256(getpass.getpass("Ingrese su contraseña: ").encode()).hexdigest()
-        #password is 12345
-        if(username=="grupo7" and 
-            password=="5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5"):
-            if(mostrarRequest("POST",{"username":username,"password":password},"login",{"user_token": "aidba8hd8g38bd2397gf29323d2","estado":"exito"})):
-                print("Por favor intentelo mas tarde")
-            else:
-                return
-        else:
-            if(mostrarRequest("POST",{"username":username,"password":password},"login",{"estado":"no_encontrado"})):
-                print("Por favor intentelo mas tarde")
-                return
-            print(f"\n** El usuario indicado no existe, {intentos-1} intentos restantes")
-     
-    print("\nEl logueo falló 3 veces. Por favor revise sus credenciales y vuelva a intentarlo más tarde")
-    exit()
-
-datos_sesion = {"slices":[],"gruposSeguridad":[],"imagenes":[]}
-
-
-
 def updateSlice(sliceSave : editSlice.currentSlice):
     datos_sesion["slices"]= [x if x.nombre != sliceSave.nombre else sliceSave for x in datos_sesion["slices"]]
 
@@ -107,7 +80,7 @@ if __name__=="__main__":
     print("--- Percy De La Rosa Vera\t\t20192265")
     print("################################################")
     
-    login()
+    IngresarCredenciales()
     print("Obteniendo datos")
     datos = obtenerDatos()
     datos_sesion_dict={}

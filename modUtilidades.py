@@ -1,24 +1,12 @@
 from typing import List,Any
-from time import sleep
+from simple_term_menu import TerminalMenu
 
 def printMenu(lineas:List[str]) -> int:
-    "Imprime un menú"
-
+    
     # Lista las opciones
-    for idx,linea in enumerate(lineas):
-        if idx == 0:
-            print(f"\n{linea}")
-        else:
-            print(f"\t{idx}) {linea}")
+    terminal_menu = TerminalMenu([f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)],title=f"\n{lineas[0]}")
+    return terminal_menu.show() + 1  # type: ignore
     
-    # Se pide elegir una opción
-    opt = input(f"> Elija una opción [1-{len(lineas)-1}]: ").strip()
-    if validarOpcionNumerica(opt,8):
-        return int(opt)
-    
-    print("Debe ingresar una opción válida")
-    return 0
-
 def validarOpcionNumerica(opt:str,max:int,) -> bool:
     "Verifica que la opción elegida sea válida"
 
@@ -43,17 +31,6 @@ def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
     
     # Si hay más de un resultado, los listamos y le pedimos al usuario elegir
     else:
-        print("Listando coincidencias...")
-        sleep(1)
-
-        # Se listan las coincidencias
-        for idx, elemento in enumerate(listaCoincidencias):
-            print(f"\t{idx+1}) {elemento.nombre}")
-        
-        opt = input(f"> Elija una opción [1-{len(listaCoincidencias)}]: ").strip()
-        if validarOpcionNumerica(opt,len(listaCoincidencias)):
-            return listaCoincidencias[int(opt)-1]
-        else:
-            print("\nHa ingresado una opción inválida")
-            return
+        terminal_menu = TerminalMenu([f"{idx}) {opt.nombre}" for idx,opt in enumerate(listaCoincidencias,1)],title="Listando Coincidencias")
+        return listaCoincidencias[terminal_menu.show()] # type: ignore
 
