@@ -3,11 +3,33 @@ import requests
 import os
 from variables import dirrecionIP
 import variables
+import datetime
 
 auth_url=f"http://{dirrecionIP}:5000/v3"
 compute_url=f"http://{dirrecionIP}:8774/v2.1"
 
+def verificarCredencialesExistentes():
+    try:
+        with open("credencial.txt","r") as f:
+            token = f.readline().rstrip()
+            expiracion = f.readline().rstrip()
+
+        # print(f"{datetime.datetime.utcnow()=}\n {datetime.datetime.strptime(expiracion,'%Y-%m-%dT%H:%M:%S.%fZ')=}")
+        # print(f"{datetime.datetime.utcnow() < datetime.datetime.strptime(expiracion,'%Y-%m-%dT%H:%M:%S.%fZ')}")
+
+        if token != "" and datetime.datetime.utcnow() < datetime.datetime.strptime(expiracion,"%Y-%m-%dT%H:%M:%S.%fZ"):
+            variables.dic["token"] = token
+            variables.dic["expiration"] = expiracion
+            return True
+        
+    except FileNotFoundError as e:
+        print(e.strerror)
+    return False
+
 def IngresarCredenciales():
+    if verificarCredencialesExistentes():
+        return
+    
     while((user:=input("Ingrese su usuario: "))==""):
         print("No puede ser vacio")
     while((password:=getpass.getpass(prompt="Ingrese su contraseña: "))==""):
@@ -34,30 +56,29 @@ def IngresarCredenciales():
     url = f"{auth_url}/auth/tokens?nocatalog"
     headers = {"Content-Type": "application/json"}
 
-
     try:
         response = requests.post(url, json=data, headers=headers)
     except Exception:
         print("No se ha podido autenticar al usuario")
-        return 1
+        exit()
     
     status_code = response.status_code
     response_content = response.json()
 
-    global token,expiration
     if status_code == 201:
         token = response.headers["X-Subject-Token"]
         variables.dic["token"] = token
         expiration = response_content["token"]["expires_at"]
         print("Autenticación exitosa")
         print(f"Su token es: {token}")
-        print(f"Su token expira en: {expiration}")
+        # print(f"Su token expira en: {expiration}")
 
-        return token
-        # Process the token and expiration as needed
+        with open("credencial.txt","w") as f:
+            f.write(f"{token}\n{expiration}")
+        
     else:
         print("No se ha podido autenticar al usuario")
-        return 1
+        exit()
 
 def createKeypair(token):
     while((keyname:=input("Ingrese el nombre de la llave: "))==""):
@@ -93,5 +114,5 @@ def createKeypair(token):
         print("Keypair creation failed:", response.text)
 
 
-if __name__ == '__main__':  
-    IngresarCredenciales();
+if __name__ == '__main__':
+    IngresarCredenciales()

@@ -5,7 +5,7 @@ def printMenu(lineas:List[str]) -> int:
     
     # Lista las opciones
     terminal_menu = TerminalMenu([f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)],title=f"\n{lineas[0]}")
-    return terminal_menu.show() + 1  # type: ignore
+    return terminal_menu.show()  # type: ignore
     
 def validarOpcionNumerica(opt:str,max:int,) -> bool:
     "Verifica que la opción elegida sea válida"

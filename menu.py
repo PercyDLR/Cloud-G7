@@ -4,51 +4,11 @@ import funcionesMenu.Slice as s
 import funcionesMenu.Imagen as img
 import funcionesMenu.reglasSeguridad as r
 from login import IngresarCredenciales
-import json
-import hashlib
-import getpass
 from typing import Dict, List, Any
 from clases.VM import VM
 from tabulate import tabulate
 from funcionesMenu.Imagen import Imagen
 from funcionesMenu.reglasSeguridad import GrupoSeguridad,Regla
-import time
-import random
-
-def mostrarRequest(method,body,action,body_resp):
-    print(f"Method: {method}")
-    print("URL: https://10.20.17.101/orquestador")
-    body["action"] = action
-    print(f"Body:\n{json.dumps(body,indent=4)}")
-    print("Send and waiting for response")
-    time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[1,0])[0]
-    print(f"Response: {respuesta}")
-    razon=""
-    if respuesta=="error": 
-        razon="Se termino la comunicacion con el servidor de forma inesperada"
-        print(f"Ha ocurrido un error **{razon}**")
-        return True
-    print(f"Body:\n{json.dumps(body_resp,indent=4)}")
-    return False
-
-def mostrarRequestafter(method,body,action,body_resp):
-    print(f"Method: {method}")
-    print("URL: https://10.20.17.101/orquestador")
-    body["user_token"] = "aidba8hd8g38bd2397gf29323d2"
-    body["action"] = action
-    print(f"Body:\n{json.dumps(body,indent=4)}")
-    print("Send and waiting for response")
-    time.sleep(2)
-    respuesta = random.choices(["exito","error"],weights=[1,0])[0]
-    print(f"Response: {respuesta}")
-    razon=""
-    if respuesta=="error": 
-        razon="Se termino la comunicacion con el servidor de forma inesperada"
-        print(f"Ha ocurrido un error **{razon}**")
-        return True
-    print(f"Body:\n{json.dumps(body_resp,indent=4)}")
-    return False
 
 def updateSlice(sliceSave : editSlice.currentSlice):
     datos_sesion["slices"]= [x if x.nombre != sliceSave.nombre else sliceSave for x in datos_sesion["slices"]]
@@ -93,7 +53,7 @@ if __name__=="__main__":
                               "Configurar Grupos de Seguridad",
                               "Administrar Imágenes de Disco",
                               "Salir"])
-        if opt==1:
+        if opt == 0:
             list_slices = [[x.nombre] for x in datos["slices"]]
             if(len(list_slices)==0): print("No hay slices creados...")
             headers = ["Nombre del slice"]
@@ -108,9 +68,11 @@ if __name__=="__main__":
             else: 
                 print(f"Mostrando todos los slices")
                 print(tabulate(list_slices,headers=headers, tablefmt="fancy_grid"))
-        if opt==2:
+
+        if opt == 1:
             s.crearSlice(datos["slices"],datos["gruposSeguridad"])
-        if opt==3:
+
+        if opt == 2:
             list_slices_names = [x.nombre for x in datos["slices"]]
             if(len(list_slices_names)!=0):
                 while(inp1:=input("Ingrese el nombre el slice:")) not in list_slices_names:
@@ -121,10 +83,13 @@ if __name__=="__main__":
                 editSlice.start()
             else:
                 print("No hay slices creados")
-        if opt==4:
-            r.main(datos["gruposSeguridad"])
-        if opt==5:
+
+        if opt == 3:
+            r.main()
+
+        if opt == 4:
             img.menuImg(datos["imagenes"])
-        if opt==6:
+
+        if opt == 5:
             print("Saliendo del programa...")
             break

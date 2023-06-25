@@ -1,10 +1,12 @@
 from dataclasses import dataclass
-from typing import List, Dict, Any
 import modUtilidades as util
 from time import sleep
 from ipaddress import ip_address
-from random import choices
-import json
+import requests as req
+import modUtilidades as util
+from ipaddress import ip_network
+import variables as var
+from tabulate import tabulate
 
 @dataclass
 class Regla:
@@ -22,167 +24,111 @@ class Regla:
 @dataclass
 class GrupoSeguridad:
     nombre:str
-    reglas:List[Regla]
+    reglas:list[Regla]
 
-def mostrarRequest(method:str, body:Dict[str,Any], action:str, razon:str):
-    print(f"Method: {method}\nURL: https://10.20.17.101/orquestador")
+def main() -> None:
+    "Genera el submenú de administración de los grupos de seguridad"
 
-    body["user_token"] = "aidba8hd8g38bd2397gf29323d2"      # info usuario
-    body["action"] = action                                 # info acción
+    IP_GATEWAY = var.dirrecionIP
+    headers = {"Content-Type": "application/json", "X-Auth-Token": str(var.dic["token"])}
 
-    print(f"Body:\n{json.dumps(body,indent=4)}")            # Se imprime el body
-    sleep(2)
-    
-    respuesta = choices(["exito","error"],weights=[1,0])[0]
-    print(f"Respuesta: {respuesta}")
-    if respuesta=="error": 
-        print(f"Ha ocurrido un error **{razon}**")
-        return False
-    return True
+    # Se generan las opciones
+    listaGrupos = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers).json()
+    nombreGrupos = [grupo["name"] for grupo in listaGrupos["security_groups"]]
+    nombreGrupos.insert(0,"Agregar Nuevo")
+    nombreGrupos.insert(0,"Opciones para Grupos de Seguridad:")
 
-def main(listaGrupos:List[GrupoSeguridad]) -> None:
-    "Administra los grupos de seguridad"
+    # Se elige una opción
+    opt = util.printMenu(nombreGrupos)
 
-    while True:
+    # Creación de nuevo grupo
+    if opt == 0:
+        nombre = input("\nIngrese un nombre para el Grupo de Seguridad: ").strip()
+        body = {
+            "security_group": {
+                "name": nombre,
+            }
+        }
+        response = req.post(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",json=body,headers=headers)
 
-        opt = util.printMenu(["Configuración de grupos de seguridad:",
-                          "Listar grupos de seguridad",
-                          "Crear grupo de seguridad",
-                          "Editar grupo de seguridad",
-                          "Eliminar grupo de seguridad",
-                          "Salir"])
+        if response.status_code == 201:
+            print(f"\nGrupo de seguridad {nombre} creado exitosamente!")
+        else:
+            print(f"\nHubo un problema, error {response.status_code}")
 
-        # Se lista los grupos de seguridad
-        if opt == 1:
-            sleep(1)
-            print("")
-            if len(listaGrupos) == 0:
-                print("No hay grupos de seguridad creados")
+    # Edición de Reglas
+    else:
+        grupo = listaGrupos["security_groups"][opt-1]
 
-            for idx, grupo in enumerate(listaGrupos,1):
-                print(f"\t{idx}) {grupo.nombre}")
+        # Se generan las opciones
+        listaReglas = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups/{grupo['id']}",headers=headers).json()
 
-        # Se crea un nuevo grupo de seguridad
-        if opt == 2:
-            nombre = input("\n> Ingrese un nombre para el securityGroup: ").strip()
+        # Se muestran las reglas de seguridad existentes
+        table_data = []
 
-            # Lista de nombres de security groups
-            listaNombres = [grupo.nombre for grupo in listaGrupos]
+        for regla in listaReglas["security_group"]["security_group_rules"]:
+            table_data.append([
+                regla["id"],
+                regla["ethertype"],
+                regla["protocol"],
+                regla["direction"],
+                regla["remote_ip_prefix"],
+                regla["description"],
+            ])
+        table = tabulate(table_data, headers=["ID","Eth Type", "Protocolo", "Dirección", "Rango IPs", "Descripción"], tablefmt="grid")
+        print(f"\nReglas de Seguridad del grupo {grupo['name']}\n"+table)
 
-            if nombre not in listaNombres:
-                if mostrarRequest("POST", {"nombre":nombre},"newSecGroup","Error de conexión"):
-                    print("\nCreando Grupo de seguridad...")
-                    listaGrupos.append(GrupoSeguridad(nombre,[]))
-                    sleep(1)
-                    print(f"Grupo {nombre} creado exitosamente!")
-            else:
-                print(f"\nEl nombre {nombre} ya existe, elija otro\n")
+        opt2 = util.printMenu(["Opciones Adicionales:","Agregar Regla","Salir"])
 
-        # Se edita un grupo de seguridad existente
-        if opt == 3:
-            nombre = input("> Ingrese el nombre del grupo [default: Listar Todos]: ").strip()
+        # Se crea una nueva regla
+        if opt2 == 0:
+            # Se obtiene el protocolo
+            protos = ["Elija un protocolo","udp","tcp"]
+            opt3 = util.printMenu(protos)
+            print(f"Elija un protocolo: {protos[opt3+1]}")
 
-            # Se escoge el grupo de seguridad
-            grupo:GrupoSeguridad = util.buscarPorNombre(nombre,listaGrupos)
-
+            # Se obtiene el puerto
             while True:
-                try: 
-                    opt2 = util.printMenu([f"Configuración del grupo {grupo.nombre}:",
-                                "Listar Reglas", "Crear Reglas", "Eliminar Regla", "Salir"])
-                except AttributeError:
+                try:
+                    puerto = int(input("> Ingrese un puerto [1-65536]: ").strip())
+                    if puerto > 65536 or puerto < 1:
+                        raise ValueError
                     break
+                except ValueError:
+                    print("\nEl puerto debe ser un número entero entre 1 y 65536")
 
-                if opt2 == 1:
-                    sleep(1)
-                    print("")
-
-                    if mostrarRequest("GET", {"secGroup":grupo.nombre},"listSecRules","Error de conexión"):
-                        print("")
-                        for regla in grupo.reglas:
-                            print(f"\t{regla}") 
-                            
-                    if len(grupo.reglas) == 0:
-                        print("No hay reglas creadas para este grupo")
-                
-                elif opt2 == 2:
-                    nombre = input("\n> Ingrese un nombre para la regla: ").strip()
-
-                    # Lista de nombres de security groups
-                    listaNombres = [regla.nombre.lower() for regla in grupo.reglas]
-
-                    if nombre.strip() == "":
-                        print("\nDebe ingresar un nombre")
-
-                    elif nombre.lower() not in listaNombres:
-                        dictProto = {"ssh": 22, "http":80, "https": 443, "mysql": 3306}
-
-                        # Valida las IPs de origen y destino
-                        try:
-                            srcIP = input("> Ingrese la IP de origen: ").strip()
-                            ip_address(srcIP)
-                            dstIP = input("> Ingrese la IP de destino: ").strip()
-                            ip_address(dstIP)
-                        except ValueError:
-                            print("\nIngrese una dirección IP válida")
-                            continue
-
-                        # Se elige el protocolo y puerto a usar
-                        protocolo = input("> Ingrese el protocolo [ssh,http,mysql,...,tcp]: ").strip()
-
-                        if protocolo.lower() in dictProto:
-                            puerto = dictProto[protocolo.lower()]
-
-                        elif protocolo.lower() == "tcp":
-                            try:
-                                puerto = int(input("> Ingrese el puerto tcp personalizado: ").strip())
-                                if puerto <= 0 or puerto > 65535:
-                                    raise ValueError
-                            except ValueError:
-                                print("El puerto debe ser un número entero positivo menor a 65535")
-                                continue
-                        else:
-                            print("El protocolo ingresado no es válido")
-                            continue
-
-                        print("\nCreando regla de seguridad...")
-                        
-                        body = {"secGroup":grupo.nombre,"nombre":nombre,"srcIP":srcIP,"dstIP":dstIP,"protocolo":protocolo.lower(),"puerto":puerto}
-                        
-                        if mostrarRequest("POST", body,"newSecRule","Error de conexión"):
-                            sleep(1)
-                            grupo.reglas.append(Regla(nombre,srcIP,dstIP,protocolo.lower(),puerto,True,"Activo"))
-                            print(f"Regla {nombre} creada exitosamente!")
+            # Se obtiene el ip
+            while True:
+                try:
+                    ip = input("> Ingrese una dirección IP [Por defecto 0.0.0.0/0]: ").strip()
+                    if ip == "":
+                        ip = "0.0.0.0/0"
                     else:
-                        print(f"\nEl nombre {nombre} ya existe, elija otro\n")
-                
-                elif opt2 == 3:
-                    nombre = input("> Ingrese la regla de seguridad [default: Listar Todas]: ").strip()
-                    
-                    regla:Regla = util.buscarPorNombre(nombre,grupo.reglas)
-                    
-                    print("\nEliminando regla de seguridad...")
-                    
-                    if mostrarRequest("POST", {"secGroup":grupo.nombre,"nombre":regla.nombre},"rmSecRule","Error de conexión"):
-                        sleep(1)
-                        grupo.reglas.remove(regla)
-                        print(f"La regla {regla.nombre} ha sido eliminada")
-
-                elif opt2 == 4:
+                        ip_network(ip)
                     break
-            
-        if opt == 4:
-            nombre = input("> Ingrese el nombre del securityGroup [default: Listar Todos]: ").strip()
+                except ValueError:
+                    print("\nLa dirección IP ingresada debe tener el formato a.b.c.d/e")
 
-            # Se escoge el grupo de seguridad
-            grupo:GrupoSeguridad = util.buscarPorNombre(nombre,listaGrupos)
-            
-            # Se elimina
-            print("\nEliminando Grupo de seguridad...")
-            if mostrarRequest("POST",{"secGroup":grupo.nombre},"rmSecGroup","Error de conexión"):
-                sleep(1)
-                listaGrupos.remove(grupo)
-                print(f"Grupo {grupo.nombre} eliminado exitosamente!")
+            descripcion = input("> Ingrese una descripción para la regla: ").strip()
 
-        if opt == 5:
-            print("Saliendo de la configuración de Grupos de Seguridad...")
-            break
+            # Se genera el cuerpo del request
+            body = {
+                    "security_group_rule": {
+                        "direction": "ingress",
+                        "port_range_min": puerto,
+                        "ethertype": "IPv4",
+                        "port_range_max": puerto,
+                        "protocol": protos[opt3+1],
+                        "security_group_id": grupo['id'],
+                        "remote_ip_prefix": ip,
+                        "description": descripcion
+                        }
+                    }
+            response = req.post(f"http://{IP_GATEWAY}:9696/v2.0/security-group-rules",json=body,headers=headers)
+
+            if response.status_code == 201:
+                print(f"\nRegla agregada exitosamente!")
+            else:
+                print(f"\nHubo un problema, error {response.status_code}")
+
+            ##TODO: Eliminar y Salir
