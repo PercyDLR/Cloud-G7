@@ -5,6 +5,7 @@ import modUtilidades as util
 from ipaddress import ip_network
 import variables as var
 from tabulate import tabulate
+from typing import List
 
 @dataclass
 class Regla:
@@ -22,7 +23,7 @@ class Regla:
 @dataclass
 class GrupoSeguridad:
     nombre:str
-    reglas:list[Regla]
+    reglas:List[Regla]
 
 def main() -> None:
     "Genera el submenú de administración de los grupos de seguridad"
