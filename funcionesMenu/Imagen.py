@@ -2,12 +2,13 @@ from dataclasses import dataclass
 from typing import List
 import modUtilidades as util
 from time import sleep
-from os.path import exists
 import time
 import requests as req
 import variables as var
 from tabulate import tabulate
 from simple_term_menu import TerminalMenu
+from tkinter.filedialog import askopenfilename
+from os.path import expanduser
 
 @dataclass
 class Imagen:
@@ -20,55 +21,64 @@ def menuImg() -> None:
     IP_GATEWAY = var.dirrecionIP
     headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
 
-    while True:
-        opt = util.printMenu(["Configuración de imagenes:",
-                            "Listar imagenes",
-                            "Importar imagen",
-                            "Eliminar imagen",                      
-                            "Salir"])
-        if opt == 1:
-            response = req.get(f"http://{IP_GATEWAY}:9292/v2/images?sort=name:asc&status=active",headers=headers)
-            listaImagenes = response.json()["images"]
+    
+    listaImagenes = req.get(f"http://{IP_GATEWAY}:9292/v2/images?sort=name:asc&status=active",headers=headers).json()["images"]
+    nombreImg = [img["name"] for img in listaImagenes]
+    nombreImg.insert(0,"Agregar Nueva")
+    nombreImg.insert(0,"Opciones para Imágenes de Disco:")
+
+    # Se elige una opción
+    opt = util.printMenu(nombreImg)
+
+    # Crear Imagen
+    if opt == 0:
+        nombreImg = input("\n> Ingrese el nombre de la imagen: ").strip()
+        pathImg = askopenfilename(initialdir=expanduser('~'))
+        print(pathImg)
+
+        body = {
+            "container_format": "bare",
+            "disk_format": "raw",
+            "name": nombreImg,
+            "visibility": "community"
+            }
+    
+        newImg = listaImagenes = req.post(f"http://{IP_GATEWAY}:9292/v2/images",headers=headers,json=body)
+
+        if newImg.status_code == 201:
+            header2 = {"Content-Type": "application/octet-stream","X-Auth-Token": var.dic["token"]}
             
-            if len(listaImagenes) == 0:
-                print("No hay imágenes de disco almacenadas")
+            with open(pathImg,"rb") as f:
+                response = req.put(f"http://{IP_GATEWAY}:9292/v2/images/{newImg.json()['id']}/file",headers=header2,data=f)
 
-            for idx, imagen in enumerate(listaImagenes,1):
-                print(f"\t{idx}) {imagen.nombre} ({imagen.path})")
-
-        if opt == 2:
-            nombreImg = input("\n> Ingrese el nombre de la imagen: ").strip()
-            path = input("> Ingrese la ubicación de la imagen [web o local(absoluta)]: ").strip()
-
-            # Si es web, se guarda el link
-            # Si es un archivo local, guardamos su ubicación
-            if exists(path):
-                print("\nImportando imagen...")
-                img = Imagen(nombreImg,path)
-                sleep(1)
-                error = mostrarRequest("POST",{"name":img.nombre},"crearImagen",img.nombre,img.path)
-                if(error): return
-                listaImagenes.append(img)
-                print(f"Se ha importando la imagen {nombreImg} exitosamente.")
+            if response.status_code == 204:
+                print(f"Se ha agregado la imagen {nombreImg} exitosamente.")
             else:
-                print(f"\nNo existe imagen de disco en la ruta {path}")
-                
-            
-        # Se edita un grupo de seguridad existente
-        if opt == 3:
-            nombre = input("\n> Ingrese un nombre de la imagen: ").strip()
-            imagen = util.buscarPorNombre(nombre,listaImagenes)
-            #Codigo para eliminar imagen
-            print("\nEliminando imagen...")
-            sleep(1)
-            error = mostrarRequest("POST",{"name":imagen.nombre},"eliminarImg",imagen.nombre,imagen.path)
-            time.sleep(2)
-            if(error): return
-            listaImagenes.remove(imagen)
-            print(f"Se ha eliminado la imagen {nombre} exitosamente.")
-        
-        if opt == 4:
-            print("\nSaliendo de la configuración de Imagenes...")
-            break
+                print(f"Hubo un problema al cargar la imagen.")  
+                print(f"{response.status_code} \n") 
+        else:
+            print(f"Hubo un problema al crear la imagen.")
+            print(f"{newImg.status_code} \n {newImg.json()}") 
+        return
+               
+    # Se edita una imagen existente
+    imagen = listaImagenes[opt-1]
+    print("Imagen elegida: " + imagen['name'])
+
+    opt2 = util.printMenu(["Opciones de la Imagen:","Editar Archivo", "Eliminar","Salir"])
+
+    # Edita el archivo de la imagen
+    if opt2 == 0:
+        pass
+    
+    # Eliminar la imagen
+    elif opt2 == 1:
+        pass
+    
+
+    #Codigo para eliminar imagen
+    print("\nEliminando imagen...")
+    listaImagenes.remove(imagen)
+    print(f"Se ha eliminado la imagen {imagen['name']} exitosamente.")
 
     

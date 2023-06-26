@@ -46,7 +46,7 @@ if __name__=="__main__":
 --- Oliver A. Bustamante Sanchez\t20190981
 --- Percy De La Rosa Vera\t\t20192265
 ################################################
-    """)
+    """ + Style.RESET_ALL)
 
     
     IngresarCredenciales()
@@ -55,7 +55,7 @@ if __name__=="__main__":
     datos_sesion_dict={}
 
     while True: 
-        opt = util.printMenu([Style.RESET_ALL +"Opciones disponibles para realizar:",
+        opt = util.printMenu(["Opciones disponibles para realizar:",
                               "Listar slices",
                               "Crear slice",
                               "Editar slice",
