@@ -34,7 +34,7 @@ def obtenerDatos() -> Dict[str, List[Any]]:
 
 # Función Main
 if __name__=="__main__":
-    
+
     print(f"""\n{Fore.CYAN}################################################
 {Fore.YELLOW}  ________                            _________ 
  /  _____/______ __ ________   ____   \\______  \\
@@ -59,7 +59,8 @@ if __name__=="__main__":
                               "Listar slices",
                               "Crear slice",
                               "Editar slice",
-                              "Configurar Grupos de Seguridad",
+                              "Administrar Flavors",
+                              "Administrar Grupos de Seguridad",
                               "Administrar Imágenes de Disco",
                               "Salir"])
         if opt == 0:
@@ -78,10 +79,10 @@ if __name__=="__main__":
                 print(f"Mostrando todos los slices")
                 print(tabulate(list_slices,headers=headers, tablefmt="fancy_grid"))
 
-        if opt == 1:
+        elif opt == 1:
             s.crearSlice(datos["slices"],datos["gruposSeguridad"])
 
-        if opt == 2:
+        elif opt == 2:
             list_slices_names = [x.nombre for x in datos["slices"]]
             if(len(list_slices_names)!=0):
                 while(inp1:=input("Ingrese el nombre el slice:")) not in list_slices_names:
@@ -93,12 +94,15 @@ if __name__=="__main__":
             else:
                 print("No hay slices creados")
 
-        if opt == 3:
+        elif opt == 3:
+            pass
+
+        elif opt == 4:
             r.main()
 
-        if opt == 4:
+        elif opt == 5:
             img.menuImg()
 
-        if opt == 5:
+        else:
             print("Saliendo del programa...")
             break

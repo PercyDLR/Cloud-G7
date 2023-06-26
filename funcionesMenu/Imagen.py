@@ -33,7 +33,7 @@ def menuImg() -> None:
 
         if opt == 1:
             break
-        
+
         # Crear Imagen
         elif opt == 0:
             nombreImg = input("\n> Ingrese el nombre de la imagen: ").strip()
