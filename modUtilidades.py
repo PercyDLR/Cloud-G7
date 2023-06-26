@@ -6,15 +6,19 @@ from tabulate import tabulate
 
 def printMenu(lineas:List[str],multiselect:bool = False,comando:str|None = None) -> int:
     "Imprime un menú para la interacción del usuario"
-
+    
     # Lista las opciones
     terminal_menu = TerminalMenu([f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)],
                                  title=f"\n{lineas[0]}",
                                  clear_menu_on_exit=False,
                                  menu_cursor_style = ("fg_cyan", "bold"),
                                  menu_highlight_style = ("bg_cyan","bold"),
+                                 multi_select_cursor_style = ("fg_red","bold"),
+                                 multi_select_cursor_brackets_style = ("fg_gray",),
+                                 search_highlight_style = ("bg_red", "bold"),
                                  multi_select=multiselect,
                                  preview_title="Detalle",
+                                 # preview_title=f"{Style.BRIGHT}Detalle{Style.RESET_ALL}",
                                  preview_size=0.5,
                                  preview_command=comando)
     return terminal_menu.show()  # type: ignore
@@ -23,6 +27,9 @@ def validarOpcionNumerica(opt:str,max:int,) -> bool:
     "Verifica que la opción elegida sea válida"
 
     return opt.isdigit() and (int(opt)>=1 and int(opt)<=max)  
+
+def printError(msg:str):
+    print(f"{Fore.RED}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
     
 def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
     "Busca un elemento en una lista por su nombre"
@@ -82,7 +89,7 @@ def previewTable(tipo:str, info:dict):
             ]
             table_data.append(fila)
 
-    encabezado = [f"{Fore.CYAN}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
+    encabezado = [f"{Style.BRIGHT}{Fore.RED}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
     table = tabulate(table_data, headers=encabezado)
     print(table)
 

@@ -4,6 +4,7 @@ import os
 from variables import dirrecionIP
 import variables
 import datetime
+from modUtilidades import printError
 
 auth_url=f"http://{dirrecionIP}:5000/v3"
 compute_url=f"http://{dirrecionIP}:8774/v2.1"
@@ -31,9 +32,9 @@ def IngresarCredenciales():
         return
     
     while((user:=input("Ingrese su usuario: "))==""):
-        print("No puede ser vacio")
+        printError("No puede ser vacio")
     while((password:=getpass.getpass(prompt="Ingrese su contraseña: "))==""):
-        print("No puede ser vacio")
+        printError("No puede ser vacio")
 
     data = {
         "auth": {
@@ -67,7 +68,7 @@ def IngresarCredenciales():
     try:
         response = requests.post(url, json=data, headers=headers)
     except Exception:
-        print("No se ha podido autenticar al usuario")
+        printError("No se ha podido autenticar al usuario")
         exit()
     
     status_code = response.status_code
@@ -85,21 +86,21 @@ def IngresarCredenciales():
             f.write(f"{token}\n{expiration}")
         
     else:
-        print("No se ha podido autenticar al usuario")
+        printError("No se ha podido autenticar al usuario")
         exit()
 
 def createKeypair(token):
     while((keyname:=input("Ingrese el nombre de la llave: "))==""):
-        print("No puede ser vacio")
+        printError("No puede ser vacio")
     
     key: str
     path= ""
     while(True):
         path=input("Ingrese la ruta de la llave: ")
         if not os.path.isfile(path):
-            print("Error: File does not exist.")
+            printError("Error: File does not exist.")
         elif os.path.getsize(path) == 0:
-            print("Error: File is empty.")
+            printError("Error: File is empty.")
         else:
             with open(path, "r") as file:
                 key = file.read()
@@ -117,9 +118,9 @@ def createKeypair(token):
     response = requests.post(compute_url + "/os-keypairs", json=data, headers=headers)
 
     if response.status_code == 200:
-        print("Keypair created successfully:", response.text)
+        printError("Keypair created successfully: " + response.text)
     else:
-        print("Keypair creation failed:", response.text)
+        printError("Keypair creation failed: " + response.text)
 
 
 if __name__ == '__main__':

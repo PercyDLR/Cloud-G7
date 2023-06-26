@@ -59,7 +59,7 @@ def menuSecGroup() -> None:
             if response.status_code == 201:
                 print(f"\nGrupo de seguridad {nombre} creado exitosamente!")
             else:
-                print(f"\nHubo un problema, error {response.status_code}")
+                util.printError(f"\nHubo un problema, error {response.status_code}")
 
         # Edición de Reglas
         else:
@@ -86,7 +86,7 @@ def menuSecGroup() -> None:
                             raise ValueError
                         break
                     except ValueError:
-                        print("\nEl puerto debe ser un número entero entre 1 y 65536")
+                        util.printError("\nEl puerto debe ser un número entero entre 1 y 65536")
 
                 # Se obtiene el ip
                 while True:
@@ -98,7 +98,7 @@ def menuSecGroup() -> None:
                             ip_network(ip)
                         break
                     except ValueError:
-                        print("\nLa dirección IP ingresada debe tener el formato a.b.c.d/e")
+                        util.printError("\nLa dirección IP ingresada debe tener el formato a.b.c.d/e")
 
                 descripcion = input("> Ingrese una descripción para la regla: ").strip()
 
@@ -120,7 +120,7 @@ def menuSecGroup() -> None:
                 if response.status_code == 201:
                     print(f"\nRegla agregada exitosamente!")
                 else:
-                    print(f"\nHubo un problema, error {response.status_code}")
+                    util.printError(f"\nHubo un problema, error {response.status_code}")
             
             # Se elimina una regla
             elif opt2 == 1:
@@ -148,7 +148,7 @@ def menuSecGroup() -> None:
                     if response.status_code == 204:
                         print("Éxito")
                     else:
-                        print(f"Error ({response.status_code})")
+                        util.printError(f"Error ({response.status_code})")
             
             # Se elimina el grupo
             elif opt2 == 2:
@@ -162,7 +162,7 @@ def menuSecGroup() -> None:
                         if response.status_code == 204:
                             print("Éxito")
                         else:
-                            print(f"Error ({response.status_code})")
+                            util.printError(f"Error ({response.status_code})")
 
                 # Luego se procede a eliminar la regla
                 response = req.delete(f"http://{IP_GATEWAY}:9696/v2.0/security-groups/{grupo['id']}",headers=headers)
@@ -170,4 +170,4 @@ def menuSecGroup() -> None:
                 if response.status_code == 204:
                     print(f"Se ha eliminado el grupo {grupo['name']} exitosamente.")
                 else:
-                    print(f"El grupo no pudo ser eliminado ({response.json()})")
+                    util.printError(f"El grupo no pudo ser eliminado ({response.json()})")

@@ -59,9 +59,9 @@ def menuImg() -> None:
                 if response.status_code == 204:
                     print(f"Se ha agregado la imagen {nombreImg} exitosamente.")
                 else:
-                    print(f"Hubo un problema al cargar la imagen.")  
+                    util.printError(f"Hubo un problema al cargar la imagen.")  
             else:
-                print(f"Hubo un problema al crear la imagen.")
+                util.printError(f"Hubo un problema al crear la imagen.")
             return
                 
         # Se edita una imagen existente
@@ -77,6 +77,5 @@ def menuImg() -> None:
             if response.status_code == 204:
                 print(f"Se ha eliminado la imagen {imagen['name']} exitosamente.")
             else:
-                print("La imagen no pudo ser eliminada")
-
-    
+                util.printError(f"La imagen no pudo ser eliminada ({response.status_code})")
+                # print(response.json())

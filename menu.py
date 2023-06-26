@@ -38,18 +38,18 @@ def obtenerDatos() -> Dict[str, List[Any]]:
 # Función Main
 if __name__=="__main__":
 
-    print(f"""\n{Fore.CYAN}################################################{Fore.YELLOW}
+    print(f"""\n{Fore.RED}################################################
   ________                            _________ 
  /  _____/______ __ ________   ____   \\______  \\
 /   \\  __\\_  __ \\  |  \\____ \\ /  _ \\      /    /
 \\    \\_\\  \\  | \\/  |  /  |_> >  <_> )    /    / 
  \\______  /__|  |____/|   __/ \\____/    /____/  
         \\/            |__|                      
-{Fore.CYAN}################################################
+################################################{Fore.CYAN}
 --- Elianne P. Ticse Espinoza\t\t20185361
 --- Oliver A. Bustamante Sanchez\t20190981
 --- Percy De La Rosa Vera\t\t20192265
-################################################{Style.RESET_ALL}""")
+{Fore.RED}################################################{Style.RESET_ALL}""")
 
     # Logueo
     IngresarCredenciales()
@@ -107,5 +107,5 @@ if __name__=="__main__":
             img.menuImg()
 
         else:
-            print("Saliendo del programa...")
+            print("\nSaliendo del programa...")
             break
