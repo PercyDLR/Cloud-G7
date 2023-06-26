@@ -21,64 +21,62 @@ def menuImg() -> None:
     IP_GATEWAY = var.dirrecionIP
     headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
 
-    
-    listaImagenes = req.get(f"http://{IP_GATEWAY}:9292/v2/images?sort=name:asc&status=active",headers=headers).json()["images"]
-    nombreImg = [img["name"] for img in listaImagenes]
-    nombreImg.insert(0,"Agregar Nueva")
-    nombreImg.insert(0,"Opciones para Imágenes de Disco:")
+    while True: 
+        listaImagenes = req.get(f"http://{IP_GATEWAY}:9292/v2/images?sort=name:asc&status=active",headers=headers).json()["images"]
+        nombreImg = [img["name"] for img in listaImagenes]
+        nombreImg.insert(0,"Salir")
+        nombreImg.insert(0,"Agregar Nueva")
+        nombreImg.insert(0,"Opciones para Imágenes de Disco:")
 
-    # Se elige una opción
-    opt = util.printMenu(nombreImg)
+        # Se elige una opción
+        opt = util.printMenu(nombreImg)
 
-    # Crear Imagen
-    if opt == 0:
-        nombreImg = input("\n> Ingrese el nombre de la imagen: ").strip()
-        pathImg = askopenfilename(initialdir=expanduser('~'))
-        print(pathImg)
+        if opt == 1:
+            break
+        
+        # Crear Imagen
+        elif opt == 0:
+            nombreImg = input("\n> Ingrese el nombre de la imagen: ").strip()
+            pathImg = askopenfilename(initialdir=expanduser('~'))
+            print(pathImg)
 
-        body = {
-            "container_format": "bare",
-            "disk_format": "raw",
-            "name": nombreImg,
-            "visibility": "community"
-            }
-    
-        newImg = listaImagenes = req.post(f"http://{IP_GATEWAY}:9292/v2/images",headers=headers,json=body)
+            body = {
+                "container_format": "bare",
+                "disk_format": "raw",
+                "name": nombreImg,
+                "visibility": "community"
+                }
+        
+            newImg = listaImagenes = req.post(f"http://{IP_GATEWAY}:9292/v2/images",headers=headers,json=body)
 
-        if newImg.status_code == 201:
-            header2 = {"Content-Type": "application/octet-stream","X-Auth-Token": var.dic["token"]}
-            
-            with open(pathImg,"rb") as f:
-                response = req.put(f"http://{IP_GATEWAY}:9292/v2/images/{newImg.json()['id']}/file",headers=header2,data=f)
+            if newImg.status_code == 201:
+                header2 = {"Content-Type": "application/octet-stream","X-Auth-Token": var.dic["token"]}
+                
+                with open(pathImg,"rb") as f:
+                    print("\nCreando imagen...")
+                    response = req.put(f"http://{IP_GATEWAY}:9292/v2/images/{newImg.json()['id']}/file",headers=header2,data=f)
 
-            if response.status_code == 204:
-                print(f"Se ha agregado la imagen {nombreImg} exitosamente.")
+                if response.status_code == 204:
+                    print(f"Se ha agregado la imagen {nombreImg} exitosamente.")
+                else:
+                    print(f"Hubo un problema al cargar la imagen.")  
             else:
-                print(f"Hubo un problema al cargar la imagen.")  
-                print(f"{response.status_code} \n") 
-        else:
-            print(f"Hubo un problema al crear la imagen.")
-            print(f"{newImg.status_code} \n {newImg.json()}") 
-        return
-               
-    # Se edita una imagen existente
-    imagen = listaImagenes[opt-1]
-    print("Imagen elegida: " + imagen['name'])
+                print(f"Hubo un problema al crear la imagen.")
+            return
+                
+        # Se edita una imagen existente
+        imagen = listaImagenes[opt-2]
 
-    opt2 = util.printMenu(["Opciones de la Imagen:","Editar Archivo", "Eliminar","Salir"])
+        opt2 = util.printMenu(["Opciones de la Imagen:", "Eliminar","Salir"])
 
-    # Edita el archivo de la imagen
-    if opt2 == 0:
-        pass
-    
-    # Eliminar la imagen
-    elif opt2 == 1:
-        pass
-    
-
-    #Codigo para eliminar imagen
-    print("\nEliminando imagen...")
-    listaImagenes.remove(imagen)
-    print(f"Se ha eliminado la imagen {imagen['name']} exitosamente.")
+        # Eliminar la imagen
+        if opt2 == 0:
+            print("\nEliminando imagen...")
+            response = req.delete(f"http://{IP_GATEWAY}:9292/v2/images/{imagen['id']}",headers=headers)
+            
+            if response.status_code == 204:
+                print(f"Se ha eliminado la imagen {imagen['name']} exitosamente.")
+            else:
+                print("La imagen no pudo ser eliminada")
 
     

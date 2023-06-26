@@ -4,7 +4,12 @@ from simple_term_menu import TerminalMenu
 def printMenu(lineas:List[str]) -> int:
     
     # Lista las opciones
-    terminal_menu = TerminalMenu([f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)],title=f"\n{lineas[0]}")
+    terminal_menu = TerminalMenu([f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)],
+                                 title=f"\n{lineas[0]}",
+                                 clear_menu_on_exit=False,
+                                 menu_cursor_style = ("fg_cyan", "bold"),
+                                 menu_highlight_style = ("bg_cyan","bold")
+                                 )
     return terminal_menu.show()  # type: ignore
     
 def validarOpcionNumerica(opt:str,max:int,) -> bool:

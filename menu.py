@@ -34,26 +34,26 @@ def obtenerDatos() -> Dict[str, List[Any]]:
 
 # Función Main
 if __name__=="__main__":
-    print(Fore.CYAN+ """\n################################################
-  ________                            _________ 
+    
+    print(f"""\n{Fore.CYAN}################################################
+{Fore.YELLOW}  ________                            _________ 
  /  _____/______ __ ________   ____   \\______  \\
 /   \\  __\\_  __ \\  |  \\____ \\ /  _ \\      /    /
 \\    \\_\\  \\  | \\/  |  /  |_> >  <_> )    /    / 
  \\______  /__|  |____/|   __/ \\____/    /____/  
         \\/            |__|                      
-################################################
+{Fore.CYAN}################################################
 --- Elianne P. Ticse Espinoza\t\t20185361
 --- Oliver A. Bustamante Sanchez\t20190981
 --- Percy De La Rosa Vera\t\t20192265
-################################################
-    """ + Style.RESET_ALL)
+################################################{Style.RESET_ALL}""")
 
-    
+    # Logueo
     IngresarCredenciales()
-    print("Obteniendo datos...")
     datos = obtenerDatos()
     datos_sesion_dict={}
 
+    # Se muestra el menú
     while True: 
         opt = util.printMenu(["Opciones disponibles para realizar:",
                               "Listar slices",
