@@ -3,13 +3,16 @@ import modUtilidades as util
 import funcionesMenu.editSlice as editSlice
 import funcionesMenu.Slice as s
 import funcionesMenu.Imagen as img
-import funcionesMenu.reglasSeguridad as r
+import funcionesMenu.reglasSeguridad as sec
 from login import IngresarCredenciales
 from typing import Dict, List, Any
 from clases.VM import VM
 from tabulate import tabulate
 from funcionesMenu.Imagen import Imagen
-from funcionesMenu.reglasSeguridad import GrupoSeguridad,Regla
+from funcionesMenu.reglasSeguridad import GrupoSeguridad
+import funcionesMenu.Flavor as flavor
+
+
 
 def updateSlice(sliceSave : editSlice.currentSlice):
     datos_sesion["slices"]= [x if x.nombre != sliceSave.nombre else sliceSave for x in datos_sesion["slices"]]
@@ -35,8 +38,8 @@ def obtenerDatos() -> Dict[str, List[Any]]:
 # Función Main
 if __name__=="__main__":
 
-    print(f"""\n{Fore.CYAN}################################################
-{Fore.YELLOW}  ________                            _________ 
+    print(f"""\n{Fore.CYAN}################################################{Fore.YELLOW}
+  ________                            _________ 
  /  _____/______ __ ________   ____   \\______  \\
 /   \\  __\\_  __ \\  |  \\____ \\ /  _ \\      /    /
 \\    \\_\\  \\  | \\/  |  /  |_> >  <_> )    /    / 
@@ -95,10 +98,10 @@ if __name__=="__main__":
                 print("No hay slices creados")
 
         elif opt == 3:
-            pass
+            flavor.menuFlavor()
 
         elif opt == 4:
-            r.main()
+            sec.menuSecGroup()
 
         elif opt == 5:
             img.menuImg()

@@ -1,16 +1,22 @@
+from colorama import Fore, Back, Style
 from typing import List,Any
 from simple_term_menu import TerminalMenu
+from sys import argv
+from tabulate import tabulate
 
-def printMenu(lineas:List[str],multiselect:bool = False) -> int:
-    
+def printMenu(lineas:List[str],multiselect:bool = False,comando:str|None = None) -> int:
+    "Imprime un menú para la interacción del usuario"
+
     # Lista las opciones
     terminal_menu = TerminalMenu([f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)],
                                  title=f"\n{lineas[0]}",
                                  clear_menu_on_exit=False,
                                  menu_cursor_style = ("fg_cyan", "bold"),
                                  menu_highlight_style = ("bg_cyan","bold"),
-                                 multi_select=multiselect
-                                 )
+                                 multi_select=multiselect,
+                                 preview_title="Detalle",
+                                 preview_size=0.5,
+                                 preview_command=comando)
     return terminal_menu.show()  # type: ignore
     
 def validarOpcionNumerica(opt:str,max:int,) -> bool:
@@ -40,3 +46,47 @@ def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
         terminal_menu = TerminalMenu([f"{idx}) {opt.nombre}" for idx,opt in enumerate(listaCoincidencias,1)],title="Listando Coincidencias")
         return listaCoincidencias[terminal_menu.show()] # type: ignore
 
+def previewTable(tipo:str, info:dict):
+    "Genera una tabla para la vista previa del menú"
+    
+    table_data = data = encabezado = []
+    
+    if tipo == "flavor":
+        encabezado = ["ID","Name", "RAM", "vCPUs", "Disk"]
+        data = [
+            info["id"],
+            info["name"],
+            info["ram"],
+            info["vcpus"],
+            info["disk"],
+        ]
+        table_data.append(data)
+    elif tipo == "subnet":
+        encabezado = ["Network","Subnet", "CIDR"]
+        data = [
+            info["network_name"],
+            info["name"],
+            info["cidr"],
+        ]
+        table_data.append(data)
+    elif tipo == "sg_rule":
+        encabezado = ["Eth Type", "Protocolo", "Puerto", "Dirección", "Rango IPs", "Descripción"]
+        for regla in info:
+            fila = [
+                regla["ethertype"],
+                regla["protocol"] if regla["protocol"] is not None else "Todos",
+                regla["port_range_min"] if regla["port_range_min"] is not None else "---",
+                regla["direction"],
+                regla["remote_ip_prefix"] if regla["remote_ip_prefix"] is not None else "0.0.0.0/0",
+                regla["description"]
+            ]
+            table_data.append(fila)
+
+    encabezado = [f"{Fore.CYAN}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
+    table = tabulate(table_data, headers=encabezado)
+    print(table)
+
+if __name__ == "__main__":
+
+    info = eval(argv[1])
+    previewTable(info[0],info[1])

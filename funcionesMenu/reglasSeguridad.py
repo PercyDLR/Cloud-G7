@@ -4,7 +4,6 @@ import requests as req
 import modUtilidades as util
 from ipaddress import ip_network
 import variables as var
-from tabulate import tabulate
 from typing import List
 
 @dataclass
@@ -25,7 +24,7 @@ class GrupoSeguridad:
     nombre:str
     reglas:List[Regla]
 
-def main() -> None:
+def menuSecGroup() -> None:
     "Genera el submenú de administración de los grupos de seguridad"
 
     IP_GATEWAY = var.dirrecionIP
@@ -34,13 +33,16 @@ def main() -> None:
     while True:
         # Se generan las opciones
         listaGrupos = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers).json()
-        nombreGrupos = [grupo["name"] for grupo in listaGrupos["security_groups"]]
+        nombreGrupos = [f"{grupo['name']}|{['sg_rule',grupo['security_group_rules']]}" for grupo in listaGrupos["security_groups"]]
+        
+        #print(eval(nombreGrupos[0].split("|")[1])[1])
+
         nombreGrupos.insert(0,"Salir")
         nombreGrupos.insert(0,"Agregar Nuevo")
         nombreGrupos.insert(0,"Opciones para Grupos de Seguridad:")
 
         # Se elige una opción
-        opt = util.printMenu(nombreGrupos)
+        opt = util.printMenu(nombreGrupos,comando="python3 modUtilidades.py {}")
 
         if opt == 1:
             break
@@ -64,22 +66,7 @@ def main() -> None:
             grupo = listaGrupos["security_groups"][opt-2]
 
             # Se generan las opciones
-            listaReglas = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups/{grupo['id']}",headers=headers).json()
-
-            # Se muestran las reglas de seguridad existentes
-            table_data = []
-
-            for regla in listaReglas["security_group"]["security_group_rules"]:
-                table_data.append([
-                    regla["ethertype"],
-                    regla["protocol"],
-                    regla["port_range_min"] if regla["port_range_min"] is not None else "---",
-                    regla["direction"],
-                    regla["remote_ip_prefix"],
-                    regla["description"]
-                ])
-            table = tabulate(table_data, headers=["Eth Type", "Protocolo", "Puerto", "Dirección", "Rango IPs", "Descripción"], tablefmt="grid")
-            print(f"\nReglas de Seguridad del grupo {grupo['name']}\n"+table)
+            listaReglas = grupo["security_group_rules"]
 
             opt2 = util.printMenu(["Opciones Adicionales:",
                                    "Agregar Regla","Eliminar Regla","Eliminar Grupo","Salir"])
@@ -140,7 +127,7 @@ def main() -> None:
                 
                 reglasEliminar = []
 
-                for regla in listaReglas["security_group"]["security_group_rules"]:
+                for regla in listaReglas:
                     if regla["protocol"] is not None:
                         reglasEliminar.append({"proto": regla["protocol"], "puerto": regla["port_range_min"], "ip_prefix": regla["remote_ip_prefix"], "id": regla["id"]})                     
 
@@ -152,7 +139,7 @@ def main() -> None:
                 for idx in seleccion:
 
                     if idx == 0: break 
-                    
+
                     regla = reglasEliminar[idx+1]
 
                     print("Eliminando reglas...", end=" ")
