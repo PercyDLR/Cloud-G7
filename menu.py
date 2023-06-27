@@ -1,4 +1,5 @@
 import modUtilidades as util
+import funcionesMenu.VM as vm
 import funcionesMenu.editSlice as editSlice
 import funcionesMenu.Slice as s
 import funcionesMenu.Imagen as img
@@ -69,6 +70,7 @@ if __name__=="__main__":
                               "Administrar Flavors",
                               "Administrar Grupos de Seguridad",
                               "Administrar Imágenes de Disco",
+                              "Gestión de VM",
                               "Salir"])
         if opt == 0:
             list_slices = [[x.nombre] for x in datos["slices"]]
@@ -112,6 +114,9 @@ if __name__=="__main__":
 
         elif opt == 6:
             img.menuImg()
+            
+        elif opt == 6:
+            vm.crearVM()
 
         else:
             print("\nSaliendo del programa...")

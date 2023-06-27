@@ -38,6 +38,9 @@ def validarOpcionNumerica(opt:str,max:int,) -> bool:
 
 def printError(msg:str):
     print(f"{Fore.RED}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
+
+def printInput(msg:str):
+    return input(f"{Fore.CYAN}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
     
 def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
     "Busca un elemento en una lista por su nombre"
