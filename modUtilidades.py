@@ -79,14 +79,42 @@ def previewTable(tipo:str, info:dict):
             info["disk"],
         ]
         table_data.append(data)
-    elif tipo == "subnet":
-        encabezado = ["Network","Subnet", "CIDR"]
+
+    elif tipo == "red_subred":
+        table_data2 = []
+
+        print(f"{Fore.CYAN}Información de la Red:{Style.RESET_ALL}")
+        encabezado = ["Nombre","Tipo","VLAN ID","Estado"]
         data = [
-            info["network_name"],
-            info["name"],
-            info["cidr"],
+            info[0]["name"],
+            info[0]["provider:network_type"],
+            info[0]["provider:segmentation_id"] if info[0]["provider:network_type"] == "vlan" else "---",
+            info[0]["status"]
         ]
         table_data.append(data)
+
+        encabezado = [f"{Style.BRIGHT}{Fore.RED}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
+        print(tabulate(table_data, headers=encabezado))
+
+        print(f"\n{Fore.CYAN}Información de las Subredes:{Style.RESET_ALL}")
+        encabezado = ["Nombre","Versión","Gateway","CIDR","Pool","DNS"]
+        table_data.clear()
+
+        for subred in info[1]:
+            data = [
+                subred["name"],
+                "IPv4" if subred["ip_version"] == 4 else "IPv6",
+                subred["gateway_ip"],
+                subred["cidr"],
+                f"{subred['allocation_pools'][0]['start']}-{subred['allocation_pools'][0]['end']}",
+                ",".join(subred["dns_nameservers"])
+            ]
+            table_data.append(data)
+
+        encabezado = [f"{Style.BRIGHT}{Fore.RED}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
+        print(tabulate(table_data, headers=encabezado))
+        return
+
     elif tipo == "sg_rule":
         encabezado = ["Eth Type", "Protocolo", "Puerto", "Dirección", "Rango IPs", "Descripción"]
         for regla in info:

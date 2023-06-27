@@ -1,6 +1,6 @@
 import requests as req
 import modUtilidades as util
-from ipaddress import ip_network
+from ipaddress import ip_network,ip_address
 import variables as var
 from tabulate import tabulate
 from random import randint
@@ -66,13 +66,14 @@ def menuProvider():
         
         # Se mapean las subnets según su red
         subnetList:dict[str,list] = {}
-        for subnet in res.json()["subnets"]:
-
-            if subnet["network_id"] not in subnetList:
-                subnetList[subnet["network_id"]] = []
-
-            subnetList[subnet["network_id"]].append(subnet)
+        for red in networksList:
+            if red["id"] not in subnetList:
+                subnetList[red["id"]] = []
             
+            for subnet in res.json()["subnets"]:
+                if subnet["network_id"] == red["id"]:
+                    subnetList[red["id"]].append(subnet)
+        
         '''
     [
     {
@@ -115,24 +116,25 @@ def menuProvider():
     ]
         '''
 
-        nombreRedes = [f"{red['name']}|" for red in networksList]
+        nombreRedes = [f"{red['name']}|{['red_subred',[red,subnetList[red['id']]]]}" for red in networksList]
 
-        opt = util.printMenu(["Opciones de Configuración de red","Agregar Nueva Red","Salir",None] + nombreRedes)
+        opt = util.printMenu(["Opciones de Configuración de red","Agregar Nueva Red","Salir",None] + nombreRedes,
+                             comando="python3 modUtilidades.py {}")
 
         if opt == 1: break
 
         # Creación de red
         elif opt == 0:
             existe = False
-            nombreRed = input("\nIngrese un nombre para la red provider: ").strip()
+            nombreRed = util.printInput("\nIngrese un nombre para la red provider: ").strip()
 
-            for red in nombreRedes[4:]:
-                if nombreRed.lower() == red.split("|")[0].lower():
+            for red in networksList:
+                if nombreRed.lower() == red["name"].lower():
                     existe = True
                     break
 
             if existe:
-                util.printError(f"La red {nombreRed} ya existe")
+                util.printError(f"La red {nombreRed} ya existe. Cree una red con un nombre distinto.")
             
             # Se crea la red
             else:
@@ -142,7 +144,7 @@ def menuProvider():
                         "admin_state_up": True,
                         "provider:network_type": "vlan",
                         "provider:physical_network": "provider",
-                        "provider:segmentation_id": randint(1,5000)
+                        "provider:segmentation_id": randint(1,4095)
                     }
                 }
                 nuevaRed = req.post(f"http://{IP_GATEWAY}:9696/v2.0/networks",headers=headers,json=body)
@@ -153,69 +155,78 @@ def menuProvider():
                     util.printError(f"Hubo un problema creando la red ({nuevaRed.status_code})")
                     # print(nuevaRed.json())
         
+        # Menú de la red elegida
         else:
             red = networksList[opt-3]
             subnets = subnetList[red["id"]]
 
             opt2 = util.printMenu([f"Opciones de la Red {red['name']}:",
-                                   "Agregar Subred", "Eliminar Subred",
+                                   "Agregar Subred","Editar Subred","Eliminar Subred",
                                    "Eliminar Red","Salir"])
-        continue
-
-
-
-        # Se elige y valida el nombre de red
-        
-        coincidenciasRed = req.get(f"http://{IP_GATEWAY}:9696/v2.0/networks",headers=headers,params={"name": nombreRed}).json()
-        if len(coincidenciasRed['networks']) != 0:
-            print("Usando red existente...\n")
-            existe = True
-            red = {"network": coincidenciasRed['networks'][0]}
-
-        # Se elige un nombre de Subred
-        nombreSubred = input("Ingrese un nombre para la subred: ").strip()
-
-        # Se especifica y valida el cidr de la subred
-        while True:
-            try:
-                cidr = input("Ingrese el cidr de la subred [a.b.c.d/e]: ").strip()
-                ip_network(cidr)
-                break
-            except ValueError:
-                util.printError("El cidr ingresado no es válido!\n")
-        
-        # Se crea la red
-        body = {
-            "network": {
-                "name": nombreRed,
-                "admin_state_up": True,
-                "provider:network_type": "vlan",
-                "provider:physical_network": "provider",
-                "provider:segmentation_id": randint(1,5000)
-            }
-        }
-
-        if not existe:
-            nuevaRed = req.post(f"http://{IP_GATEWAY}:9696/v2.0/networks",headers=headers,json=body)
-            red = nuevaRed.json()
-
-        if existe or nuevaRed.status_code == 201:
-            print(f"Red {nombreRed} creada exitosamente!")
             
-            # Se crea la subred
-            body = {
-                "subnet": {
-                    "network_id": red["network"]["id"],
-                    "name": nombreSubred,
-                    "ip_version": 4,
-                    "cidr": cidr
-                }
-            }
+            ## TODO: Agregar más opciones al crear subredes
 
-            nuevaSubred = req.post(f"http://{IP_GATEWAY}:9696/v2.0/subnets",headers=headers,json=body)
-            if nuevaSubred.status_code == 201:
-                print(f"Subred {nombreSubred} creada exitosamente!")
-            else:
-                print(f"\nHubo un problemaal crear la subred, error {nuevaSubred.status_code}")
-        else:
-            print(f"\nHubo un problema al crear la red, error {nuevaRed.status_code}")
+            # Se crea una subred
+            if opt == 0:
+                existe = False
+                nombreSubred = util.printInput("\nIngrese un nombre para la red provider: ").strip()
+
+                for subred in subnets:
+                    if nombreSubred.lower() == subred["name"].lower():
+                        existe = True
+                        break
+                if existe:
+                    util.printError(f"La subred {nombreSubred} ya existe. Cree una subred con un nombre distinto.")
+
+                while True:
+                    try:
+                        cidr = util.printInput("Ingrese el CIDR de la subred [a.b.c.d/e]: ").strip()
+                        ip_network(cidr)
+                        break
+                    except ValueError:
+                        util.printError("El CIDR ingresado no es válido!\n")
+                
+                nameservers = []
+                print()
+                while True:
+                    try:
+                        dns = util.printInput("Ingrese la dirección IP de un servidor DNS [dejar en blanco para terminar]: ").strip()
+                        if dns == "": break
+                        ip_address(dns)
+                        nameservers.append(dns)
+                    except ValueError:
+                        util.printError("El DNS ingresado no es válido!\n")
+                
+                body = {
+                    "subnet": {
+                        "network_id": red["id"],
+                        "name": nombreSubred,
+                        "ip_version": 4,
+                        "cidr": cidr,
+                        "dns_nameservers": nameservers
+                    }
+                }
+
+                nuevaSubred = req.post(f"http://{IP_GATEWAY}:9696/v2.0/subnets",headers=headers,json=body)
+                if nuevaSubred.status_code == 201:
+                    print(f"Subred {nombreSubred} creada exitosamente!")
+                else:
+                    util.printError(f"\nHubo un problema al crear la subred ({nuevaSubred.status_code})")
+                    # print(nuevaSubred.json())
+                
+            # TODO: Opciones faltantes
+
+            # Se edita una subred
+            elif opt == 1:
+                pass
+
+            # Se elimina una subred
+            elif opt == 2:
+                pass
+
+            # Se elimina la red
+            elif opt == 3:
+                pass
+            
+            # Salir
+            elif opt == 4: break

@@ -115,9 +115,8 @@ if __name__=="__main__":
         elif opt == 6:
             img.menuImg()
             
-        elif opt == 6:
+        elif opt == 7:
             vm.crearVM()
-
         else:
             print("\nSaliendo del programa...")
             break
