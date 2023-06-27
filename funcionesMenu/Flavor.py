@@ -20,6 +20,7 @@ def menuFlavor() -> None:
         menu_items = [f"{flavor['name']}|{['flavor',flavor]}" for flavor in flavorsList]
         # print(menu_items[0].split("|")[1])
 
+        menu_items.insert(0,None)
         menu_items.insert(0,"Salir")
         menu_items.insert(0,"Agregar Nuevo")
         menu_items.insert(0,"Opciones para Flavors")
@@ -74,7 +75,7 @@ def menuFlavor() -> None:
 
         # Opciones específicas del flavor
         else:
-            flavor = flavorsList[opt-2]
+            flavor = flavorsList[opt-3]
 
             opt2 = util.printMenu([f"Opciones Flavor {flavor['name']}:","Eliminar","Salir"])
 

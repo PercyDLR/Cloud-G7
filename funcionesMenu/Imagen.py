@@ -24,6 +24,8 @@ def menuImg() -> None:
     while True: 
         listaImagenes = req.get(f"http://{IP_GATEWAY}:9292/v2/images?sort=name:asc&status=active",headers=headers).json()["images"]
         nombreImg = [img["name"] for img in listaImagenes]
+        
+        nombreImg.insert(0,None)
         nombreImg.insert(0,"Salir")
         nombreImg.insert(0,"Agregar Nueva")
         nombreImg.insert(0,"Opciones para Imágenes de Disco:")
@@ -65,9 +67,9 @@ def menuImg() -> None:
             return
                 
         # Se edita una imagen existente
-        imagen = listaImagenes[opt-2]
+        imagen = listaImagenes[opt-3]
 
-        opt2 = util.printMenu(["Opciones de la Imagen:", "Eliminar","Salir"])
+        opt2 = util.printMenu([f"Opciones de la Imagen {imagen['name']}:", "Eliminar","Salir"])
 
         # Eliminar la imagen
         if opt2 == 0:

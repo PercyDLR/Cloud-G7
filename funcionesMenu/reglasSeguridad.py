@@ -37,6 +37,7 @@ def menuSecGroup() -> None:
         
         #print(eval(nombreGrupos[0].split("|")[1])[1])
 
+        nombreGrupos.insert(0, None) # type: ignore
         nombreGrupos.insert(0,"Salir")
         nombreGrupos.insert(0,"Agregar Nuevo")
         nombreGrupos.insert(0,"Opciones para Grupos de Seguridad:")
@@ -63,7 +64,7 @@ def menuSecGroup() -> None:
 
         # Edición de Reglas
         else:
-            grupo = listaGrupos["security_groups"][opt-2]
+            grupo = listaGrupos["security_groups"][opt-3]
 
             # Se generan las opciones
             listaReglas = grupo["security_group_rules"]
@@ -154,7 +155,7 @@ def menuSecGroup() -> None:
             elif opt2 == 2:
 
                 # Primero se deben eliminar todas las reglas relacionadas a un puerto
-                for regla in listaReglas["security_group"]["security_group_rules"]:
+                for regla in listaReglas:
                     if regla["port_range_min"] is not None:
                         print(f"Eliminando regla en el puerto {regla['port_range_min']}...", end=" ")
                         response = req.delete(f"http://{IP_GATEWAY}:9696/v2.0/security-group-rules/{regla['id']}",headers=headers)

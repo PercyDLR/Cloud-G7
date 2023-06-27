@@ -1,16 +1,19 @@
-from colorama import Fore, Back, Style
 import modUtilidades as util
 import funcionesMenu.editSlice as editSlice
 import funcionesMenu.Slice as s
 import funcionesMenu.Imagen as img
+import funcionesMenu.Flavor as flavor
 import funcionesMenu.reglasSeguridad as sec
+import funcionesMenu.Provider as prov
 from login import IngresarCredenciales
+
 from typing import Dict, List, Any
-from clases.VM import VM
 from tabulate import tabulate
+from colorama import Fore, Style
+
+from clases.VM import VM
 from funcionesMenu.Imagen import Imagen
 from funcionesMenu.reglasSeguridad import GrupoSeguridad
-import funcionesMenu.Flavor as flavor
 
 
 
@@ -62,6 +65,7 @@ if __name__=="__main__":
                               "Listar slices",
                               "Crear slice",
                               "Editar slice",
+                              "Administrar Redes Provider",
                               "Administrar Flavors",
                               "Administrar Grupos de Seguridad",
                               "Administrar Imágenes de Disco",
@@ -98,12 +102,15 @@ if __name__=="__main__":
                 print("No hay slices creados")
 
         elif opt == 3:
+            prov.menuProvider()
+        
+        elif opt == 4:
             flavor.menuFlavor()
 
-        elif opt == 4:
+        elif opt == 5:
             sec.menuSecGroup()
 
-        elif opt == 5:
+        elif opt == 6:
             img.menuImg()
 
         else:

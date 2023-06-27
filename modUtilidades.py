@@ -4,11 +4,19 @@ from simple_term_menu import TerminalMenu
 from sys import argv
 from tabulate import tabulate
 
-def printMenu(lineas:List[str],multiselect:bool = False,comando:str|None = None) -> int:
+def printMenu(lineas:List[str],multiselect:bool = False,comando:str|None = None,) -> int:
     "Imprime un menú para la interacción del usuario"
     
+    try:
+        idxEspacio = lineas.index(None) # type: ignore
+
+        opciones = lineas[1:(idxEspacio+1)]
+        opciones += [f"{idx}) {opt}" for idx,opt in enumerate(lineas[(idxEspacio+1):],1)]
+    except ValueError:
+        opciones = [f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)]
+
     # Lista las opciones
-    terminal_menu = TerminalMenu([f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)],
+    terminal_menu = TerminalMenu(opciones,
                                  title=f"\n{lineas[0]}",
                                  clear_menu_on_exit=False,
                                  menu_cursor_style = ("fg_cyan", "bold"),
