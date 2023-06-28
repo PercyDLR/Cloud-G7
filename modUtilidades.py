@@ -3,6 +3,10 @@ from typing import List,Any
 from simple_term_menu import TerminalMenu
 from sys import argv
 from tabulate import tabulate
+from tkinter import TclError
+from ttkthemes import ThemedTk
+from tkinter.filedialog import askopenfilename
+from os.path import expanduser
 
 def printMenu(lineas:List[str],multiselect:bool = False,comando:str|None = None,) -> int:
     "Imprime un menú para la interacción del usuario"
@@ -34,8 +38,6 @@ def printMenu(lineas:List[str],multiselect:bool = False,comando:str|None = None,
     return terminal_menu.show()  # type: ignore
     
 def validarOpcionNumerica(opt:str,max:int,) -> bool:
-    "Verifica que la opción elegida sea válida"
-
     return opt.isdigit() and (int(opt)>=1 and int(opt)<=max)  
 
 def printError(msg:str):
@@ -46,6 +48,26 @@ def printSuccess(msg:str):
 
 def printInput(msg:str):
     return input(f"{Fore.CYAN}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
+
+def selectorArchivos(tipos:list[tuple[str,str]]) -> str:
+    root = ThemedTk(theme='arc')
+    try:
+        try:
+            root.tk.call('tk_getOpenFile', '-foobarbaz')
+        except TclError:
+            pass
+        # now set the magic variables accordingly
+        root.tk.call('set', '::tk::dialog::file::showHiddenBtn', '1')
+        root.tk.call('set', '::tk::dialog::file::showHiddenVar', '0')
+    except:
+        pass
+    
+    root.lift()
+    root.withdraw()
+    
+    archivo = askopenfilename(initialdir=expanduser('~'),filetypes=tipos)
+    
+    return archivo
     
 def buscarPorNombre(nombre:str,lista:List[Any]) -> Any:
     "Busca un elemento en una lista por su nombre"

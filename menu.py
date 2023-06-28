@@ -6,6 +6,7 @@ import funcionesMenu.Imagen as img
 import funcionesMenu.Flavor as flavor
 import funcionesMenu.reglasSeguridad as sec
 import funcionesMenu.Provider as prov
+import funcionesMenu.Keypair as key
 from login import IngresarCredenciales
 
 from typing import Dict, List, Any
@@ -67,7 +68,7 @@ if __name__=="__main__":
                               "Crear slice",
                               "Editar slice",
                               "Administrar Redes Provider",
-                              "Administrar Keypairs"
+                              "Administrar Keypairs",
                               "Administrar Flavors",
                               "Administrar Grupos de Seguridad",
                               "Administrar Imágenes de Disco",
@@ -108,15 +109,18 @@ if __name__=="__main__":
             prov.menuProvider()
         
         elif opt == 4:
+            key.menuKeypair()
+        
+        elif opt == 5:
             flavor.menuFlavor()
 
-        elif opt == 5:
+        elif opt == 6:
             sec.menuSecGroup()
 
-        elif opt == 6:
+        elif opt == 7:
             img.menuImg()
             
-        elif opt == 7:
+        elif opt == 8:
             vm.crearVM()
         else:
             print("\nSaliendo del programa...")

@@ -1,44 +1,31 @@
-import getpass
-from colorama import Fore,Style
 import requests
-import os
-from variables import dirrecionIP
-import variables
-import datetime
-from modUtilidades import printError,printSuccess,printInput
+import variables as var
+import modUtilidades as util
 
-def createKeypair(token):
+def menuKeypair():
 
-    compute_url=f"http://{dirrecionIP}:8774/v2.1"
+    compute_url=f"http://{var.dirrecionIP}:8774/v2.1"
+    headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic['token']}
 
-    while((keyname:=printInput("Ingrese el nombre de la llave: "))==""):
-        printError("No puede ser vacio")
+    while((keyname:=util.printInput("Ingrese el nombre de la llave: "))==""):
+        util.printError("No puede ser vacio")
     
-    while(True):
-        path=printInput("Ingrese la ruta de la llave: ")
+    path = util.selectorArchivos([("LLave pública",".pub"),("Todos los archivos","*")])
 
-        if not os.path.isfile(path):
-            printError("Error: File does not exist.")
-        elif os.path.getsize(path) == 0:
-            printError("Error: File is empty.")
-        else:
-            with open(path, "r") as file:
-                key = file.read()
-            break
-
-    data = {
-        "keypair": {
-            "name": keyname,
-            "public_key": key
+    with open(path, "r") as file:
+        key = file.read()
+       
+        data = {
+            "keypair": {
+                "name": keyname,
+                "public_key": key
+            }
         }
-    }
 
-    headers = {"Content-Type": "application/json", "X-Auth-Token": token}
+        response = requests.post(compute_url + "/os-keypairs", json=data, headers=headers)
 
-    response = requests.post(compute_url + "/os-keypairs", json=data, headers=headers)
-
-    if response.status_code == 200:
-        printSuccess("Par de llaves creado exitosamente")
-    else:
-        printError(f"Hubo un error creando el par de llaves ({response.status_code})")
-        # print(response.json())
+        if response.status_code == 200:
+            util.printSuccess("Par de llaves creado exitosamente")
+        else:
+            util.printError(f"Hubo un error creando el par de llaves ({response.status_code})")
+            # print(response.json())

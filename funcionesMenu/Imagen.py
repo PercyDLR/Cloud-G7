@@ -2,8 +2,6 @@ from dataclasses import dataclass
 import modUtilidades as util
 import requests as req
 import variables as var
-from tkinter.filedialog import askopenfilename
-from os.path import expanduser
 
 @dataclass
 class Imagen:
@@ -34,8 +32,7 @@ def menuImg() -> None:
         # Crear Imagen
         elif opt == 0:
             nombreImg = input("\n> Ingrese el nombre de la imagen: ").strip()
-            pathImg = askopenfilename(initialdir=expanduser('~'))
-            print(pathImg)
+            pathImg = util.selectorArchivos([("Imagen de disco",".qcow .qcow2 .img .raw .iso .cso .vdi .vhd .bin"),("Todos los archivos","*")])
 
             body = {
                 "container_format": "bare",
