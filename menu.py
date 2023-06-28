@@ -67,6 +67,7 @@ if __name__=="__main__":
                               "Crear slice",
                               "Editar slice",
                               "Administrar Redes Provider",
+                              "Administrar Keypairs"
                               "Administrar Flavors",
                               "Administrar Grupos de Seguridad",
                               "Administrar Imágenes de Disco",

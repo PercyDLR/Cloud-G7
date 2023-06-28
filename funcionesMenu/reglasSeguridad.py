@@ -4,7 +4,6 @@ import requests as req
 import modUtilidades as util
 from ipaddress import ip_network
 import variables as var
-from typing import List
 
 @dataclass
 class Regla:
@@ -22,7 +21,7 @@ class Regla:
 @dataclass
 class GrupoSeguridad:
     nombre:str
-    reglas:List[Regla]
+    reglas:list[Regla]
 
 def menuSecGroup() -> None:
     "Genera el submenú de administración de los grupos de seguridad"

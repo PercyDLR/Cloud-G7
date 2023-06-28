@@ -2,7 +2,6 @@ import requests as req
 import modUtilidades as util
 from ipaddress import ip_network,ip_address
 import variables as var
-from tabulate import tabulate
 from random import randint
 
 class Red:
@@ -118,7 +117,7 @@ def menuProvider():
 
         nombreRedes = [f"{red['name']}|{['red_subred',[red,subnetList[red['id']]]]}" for red in networksList]
 
-        opt = util.printMenu(["Opciones de Configuración de red","Agregar Nueva Red","Salir",None] + nombreRedes,
+        opt = util.printMenu(["Opciones de Configuración de red: ","Agregar Nueva Red","Salir",None] + nombreRedes,
                              comando="python3 modUtilidades.py {}")
 
         if opt == 1: break
@@ -161,13 +160,13 @@ def menuProvider():
             subnets = subnetList[red["id"]]
 
             opt2 = util.printMenu([f"Opciones de la Red {red['name']}:",
-                                   "Agregar Subred","Editar Subred","Eliminar Subred",
+                                   "Agregar Subred","Eliminar Subred",
                                    "Eliminar Red","Salir"])
             
             ## TODO: Agregar más opciones al crear subredes
 
             # Se crea una subred
-            if opt == 0:
+            if opt2 == 0:
                 existe = False
                 nombreSubred = util.printInput("\nIngrese un nombre para la red provider: ").strip()
 
@@ -197,13 +196,16 @@ def menuProvider():
                     except ValueError:
                         util.printError("El DNS ingresado no es válido!\n")
                 
+                descripcion = util.printInput("Ingrese una descripción de la subred: ").strip()
+                
                 body = {
                     "subnet": {
                         "network_id": red["id"],
                         "name": nombreSubred,
                         "ip_version": 4,
                         "cidr": cidr,
-                        "dns_nameservers": nameservers
+                        "dns_nameservers": nameservers,
+                        "description": descripcion
                     }
                 }
 
@@ -213,20 +215,32 @@ def menuProvider():
                 else:
                     util.printError(f"\nHubo un problema al crear la subred ({nuevaSubred.status_code})")
                     # print(nuevaSubred.json())
-                
-            # TODO: Opciones faltantes
 
-            # Se edita una subred
-            elif opt == 1:
-                pass
+            # Se elimina un grupo de subredes
+            elif opt2 == 1:
+                nombreSubredes = [f"{subred['name']}|{['subred',[subred]]}" for subred in subnets]
+                idxs:list[int] = util.printMenu(["Seleccione subredes a eliminar:","Cancelar",None] + nombreSubredes,comando="python3 modUtilidades.py {}",multiselect=True) # type: ignore
 
-            # Se elimina una subred
-            elif opt == 2:
-                pass
+                # Elimina las subredes seleccionadas
+                if 0 not in idxs:
+                    for idx in idxs:
+                        response = req.delete(f"http://{IP_GATEWAY}:9696/v2.0/subnets/{subnets[idx-2]['id']}",headers=headers)
+                        
+                        print(f"Eliminando subred {subnets[idx]['name']}...",sep=" ")
+                        if response.status_code == 204:
+                            util.printSuccess("Éxito!")
+                        else:
+                            util.printError(f"Error ({response.status_code})")
 
             # Se elimina la red
-            elif opt == 3:
-                pass
-            
-            # Salir
-            elif opt == 4: break
+            elif opt2 == 2:
+                response = req.delete(f"http://{IP_GATEWAY}:9696/v2.0/networks/{red['id']}",headers=headers)
+                        
+                print(f"Eliminando la red {red['name']}...",sep=" ")
+                if response.status_code == 204:
+                    util.printSuccess(f"La red {red['name']} fue eliminada exitosamente")
+                if response.status_code == 409:
+                    util.printError(f"La red {red['name']} está siendo usada aún (Error {response.status_code})")
+                else:
+                    util.printError(f"Hubo un error al eliminar la red {red['name']} ({response.status_code})")
+                    print(response.json())

@@ -1,12 +1,7 @@
 from dataclasses import dataclass
-from typing import List
 import modUtilidades as util
-from time import sleep
-import time
 import requests as req
 import variables as var
-from tabulate import tabulate
-from simple_term_menu import TerminalMenu
 from tkinter.filedialog import askopenfilename
 from os.path import expanduser
 

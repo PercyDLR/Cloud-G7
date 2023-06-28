@@ -16,19 +16,21 @@ def printMenu(lineas:List[str],multiselect:bool = False,comando:str|None = None,
         opciones = [f"{idx}) {opt}" for idx,opt in enumerate(lineas[1:],1)]
 
     # Lista las opciones
-    terminal_menu = TerminalMenu(opciones,
-                                 title=f"\n{lineas[0]}",
-                                 clear_menu_on_exit=False,
-                                 menu_cursor_style = ("fg_cyan", "bold"),
-                                 menu_highlight_style = ("bg_cyan","bold"),
-                                 multi_select_cursor_style = ("fg_red","bold"),
+    terminal_menu = TerminalMenu(opciones, title=f"\n{lineas[0]}", preview_size=0.6,
                                  multi_select_cursor_brackets_style = ("fg_gray",),
+                                 multi_select_cursor_style = ("fg_red","bold"),
                                  search_highlight_style = ("bg_red", "bold"),
+                                 menu_highlight_style = ("bg_cyan","bold"),
+                                 menu_cursor_style = ("fg_cyan", "bold"),
+                                 status_bar_style=("fg_yellow","bold"),
+                                 status_bar_below_preview=True,
+                                 show_multi_select_hint=True,
+                                 clear_menu_on_exit=False,
                                  multi_select=multiselect,
+                                 preview_command=comando,
                                  preview_title="Detalle",
                                  # preview_title=f"{Style.BRIGHT}Detalle{Style.RESET_ALL}",
-                                 preview_size=0.5,
-                                 preview_command=comando)
+                                 show_multi_select_hint_text="Presione {multi_select_keys} para seleccionar y {accept_keys} para seleccionar y aceptar")
     return terminal_menu.show()  # type: ignore
     
 def validarOpcionNumerica(opt:str,max:int,) -> bool:
@@ -38,6 +40,9 @@ def validarOpcionNumerica(opt:str,max:int,) -> bool:
 
 def printError(msg:str):
     print(f"{Fore.RED}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
+
+def printSuccess(msg:str):
+    print(f"{Fore.GREEN}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
 
 def printInput(msg:str):
     return input(f"{Fore.CYAN}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
@@ -80,8 +85,22 @@ def previewTable(tipo:str, info:dict):
         ]
         table_data.append(data)
 
+    elif tipo == "subred":
+        encabezado = ["Nombre","Versión","Gateway","CIDR","Pool","DNS","Descripción"]
+
+        for subred in info:
+            data = [
+                subred["name"],
+                "IPv4" if subred["ip_version"] == 4 else "IPv6",
+                subred["gateway_ip"],
+                subred["cidr"],
+                f"{subred['allocation_pools'][0]['start']} - {subred['allocation_pools'][0]['end']}",
+                ", ".join(subred["dns_nameservers"]),
+                subred["description"]
+            ]
+            table_data.append(data)
+
     elif tipo == "red_subred":
-        table_data2 = []
 
         print(f"{Fore.CYAN}Información de la Red:{Style.RESET_ALL}")
         encabezado = ["Nombre","Tipo","VLAN ID","Estado"]
@@ -92,28 +111,13 @@ def previewTable(tipo:str, info:dict):
             info[0]["status"]
         ]
         table_data.append(data)
-
         encabezado = [f"{Style.BRIGHT}{Fore.RED}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
-        print(tabulate(table_data, headers=encabezado))
-
+        print(tabulate(table_data, headers=encabezado)) 
+        
         print(f"\n{Fore.CYAN}Información de las Subredes:{Style.RESET_ALL}")
-        encabezado = ["Nombre","Versión","Gateway","CIDR","Pool","DNS"]
-        table_data.clear()
-
-        for subred in info[1]:
-            data = [
-                subred["name"],
-                "IPv4" if subred["ip_version"] == 4 else "IPv6",
-                subred["gateway_ip"],
-                subred["cidr"],
-                f"{subred['allocation_pools'][0]['start']}-{subred['allocation_pools'][0]['end']}",
-                ",".join(subred["dns_nameservers"])
-            ]
-            table_data.append(data)
-
-        encabezado = [f"{Style.BRIGHT}{Fore.RED}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
-        print(tabulate(table_data, headers=encabezado))
+        previewTable("subred",info[1])
         return
+
 
     elif tipo == "sg_rule":
         encabezado = ["Eth Type", "Protocolo", "Puerto", "Dirección", "Rango IPs", "Descripción"]
