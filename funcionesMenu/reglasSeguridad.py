@@ -57,7 +57,7 @@ def menuSecGroup() -> None:
             response = req.post(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",json=body,headers=headers)
 
             if response.status_code == 201:
-                print(f"\nGrupo de seguridad {nombre} creado exitosamente!")
+                util.printSuccess(f"\nGrupo de seguridad {nombre} creado exitosamente!")
             else:
                 util.printError(f"\nHubo un problema, error {response.status_code}")
 
@@ -76,7 +76,6 @@ def menuSecGroup() -> None:
                 # Se obtiene el protocolo
                 protos = ["Elija un protocolo","udp","tcp"]
                 opt3 = util.printMenu(protos)
-                print(f"Elija un protocolo: {protos[opt3+1]}")
 
                 # Se obtiene el puerto
                 while True:
@@ -118,7 +117,7 @@ def menuSecGroup() -> None:
                 response = req.post(f"http://{IP_GATEWAY}:9696/v2.0/security-group-rules",json=body,headers=headers)
 
                 if response.status_code == 201:
-                    print(f"\nRegla agregada exitosamente!")
+                    util.printSuccess(f"\nRegla agregada exitosamente!")
                 else:
                     util.printError(f"\nHubo un problema, error {response.status_code}")
             
@@ -146,7 +145,7 @@ def menuSecGroup() -> None:
                     response = req.delete(f"http://{IP_GATEWAY}:9696/v2.0/security-group-rules/{regla['id']}",headers=headers)
                 
                     if response.status_code == 204:
-                        print("Éxito")
+                        util.printSuccess("Éxito")
                     else:
                         util.printError(f"Error ({response.status_code})")
             
@@ -160,7 +159,7 @@ def menuSecGroup() -> None:
                         response = req.delete(f"http://{IP_GATEWAY}:9696/v2.0/security-group-rules/{regla['id']}",headers=headers)
                         
                         if response.status_code == 204:
-                            print("Éxito")
+                            util.printSuccess("Éxito")
                         else:
                             util.printError(f"Error ({response.status_code})")
 
@@ -168,6 +167,6 @@ def menuSecGroup() -> None:
                 response = req.delete(f"http://{IP_GATEWAY}:9696/v2.0/security-groups/{grupo['id']}",headers=headers)
 
                 if response.status_code == 204:
-                    print(f"Se ha eliminado el grupo {grupo['name']} exitosamente.")
+                    util.printSuccess(f"Se ha eliminado el grupo {grupo['name']} exitosamente.")
                 else:
                     util.printError(f"El grupo no pudo ser eliminado ({response.json()})")

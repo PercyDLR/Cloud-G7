@@ -107,6 +107,21 @@ def previewTable(tipo:str, info:dict):
         ]
         table_data.append(data)
 
+    elif tipo == "subred_list":
+        encabezado = ["Red", "Nombre","Versión","Gateway","CIDR","Pool","DNS","Descripción"]
+
+        data = [
+            info["network_name"],
+            info["name"],
+            "IPv4" if info["ip_version"] == 4 else "IPv6",
+            info["gateway_ip"],
+            info["cidr"],
+            f"{info['allocation_pools'][0]['start']} - {info['allocation_pools'][0]['end']}",
+            ", ".join(info["dns_nameservers"]),
+            info["description"]
+        ]
+        table_data.append(data)
+
     elif tipo == "subred":
         encabezado = ["Nombre","Versión","Gateway","CIDR","Pool","DNS","Descripción"]
 
@@ -153,6 +168,24 @@ def previewTable(tipo:str, info:dict):
                 regla["description"]
             ]
             table_data.append(fila)
+    
+    elif tipo == "vm":
+        encabezado = ["Nombre", "Imagen", "Flavor", "Redes", "IP de Acceso", "Key", "Sec Groups", "Host", "Estado"]
+        data = [
+            info["name"],
+            info["image"]["name"],
+            info["flavor"]["original_name"],
+            info['key_name'],
+            "\n".join(grupo['name'] for grupo in info['security_groups']),
+            info['OS-EXT-SRV-ATTR:host'],
+            info["status"]
+        ]
+
+        for red in info['addresses']:
+            data.insert(3,red)
+            data.insert(4,"\n".join(ip['addr'] for ip in info['addresses'][red]))
+        table_data.append(data)
+        
 
     encabezado = [f"{Style.BRIGHT}{Fore.RED}{elemento}{Style.RESET_ALL}" for elemento in encabezado]
     table = tabulate(table_data, headers=encabezado)

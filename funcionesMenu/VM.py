@@ -1,10 +1,6 @@
 import requests as req
 import variables as var
 import modUtilidades as util
-from colorama import Fore, Back, Style 
-from tabulate import tabulate
-from simple_term_menu import TerminalMenu
-
 
 def selectFlavor(IP_GATEWAY,headers):
         
@@ -14,16 +10,11 @@ def selectFlavor(IP_GATEWAY,headers):
     # Crea el menú de selección de flavors
     menu_items = [f"{flavor['name']}|{['flavor',flavor]}" for flavor in flavorsList]
     # print(menu_items[0].split("|")[1])
-
-    menu_items.insert(0,"Salir")
-    menu_items.insert(0,"Seleccione un flavor: ")
     
-    opt = util.printMenu(menu_items, comando="python3 modUtilidades.py {}")
-    if opt == 0:
-        return 
-    else:
-        # Muestra el menú y obtiene la selección del usuario
-        selected_flavor = flavorsList[opt-1]
+    opt = util.printMenu(["Seleccione un flavor:"] + menu_items, 
+                         comando="python3 modUtilidades.py {}")
+  
+    selected_flavor = flavorsList[opt]
     
     return selected_flavor
         
@@ -35,17 +26,14 @@ def selectImage(IP_GATEWAY,headers):
     
     # Crea el menú de selección de flavors
     menu_items = [image["name"] for image in imagesList]
-    menu = TerminalMenu(menu_entries=menu_items, title="Seleccione una imagen: ")
 
     # Muestra el menú y obtiene la selección del usuario
-    selected_index = menu.show()
+    selected_index = util.printMenu(["Seleccione una imagen:"] + menu_items)
+        
     selected_image = imagesList[selected_index]
-    
     return selected_image
 
 def selectNetwork(IP_GATEWAY,headers):
-    print("############## Seleccione una imagen ##############")
-    
     res = req.get(f"http://{IP_GATEWAY}:9696/v2.0/subnets",headers=headers)
     subnetsList = res.json()["subnets"]
     
@@ -61,28 +49,14 @@ def selectNetwork(IP_GATEWAY,headers):
                 subnet["network_name"]=network["name"]
                 subnetsListActive.append(subnet)
     
-    table_data = []
-    for subnet in subnetsListActive:
-        flavor_data = [
-            subnet["network_name"],
-            subnet["name"],
-            subnet["cidr"],
-        ]
-        table_data.append(flavor_data)
-    
-    # Imprime la tabla
-    table = tabulate(table_data, headers=["Network","Subnet", "CIDR"], tablefmt="grid")
-    print(table)
-    
-    
     # Crea el menú de selección de flavors
-    menu_items = [f"{subnet['network_name']} - {subnet['name']} - {subnet['cidr']}" for subnet in subnetsListActive]
-    menu = TerminalMenu(menu_entries=menu_items, title="Seleccione una subnet: ")
+    menu_items = [f"{subnet['name']}|{['subred_list',subnet]}" for subnet in subnetsListActive]
+    #print(eval(menu_items[0].split('|')[1])[1])
 
-    # Muestra el menú y obtiene la selección del usuario
-    selected_index:int = menu.show() # type: ignore
+    selected_index = util.printMenu(["Seleccione una subnet:"] + menu_items,
+                         comando="python3 modUtilidades.py {}")
+
     selected_subnet = subnetsListActive[selected_index] 
-    
     return selected_subnet
 
 def selectKeypair(IP_GATEWAY,headers):
@@ -91,43 +65,26 @@ def selectKeypair(IP_GATEWAY,headers):
 
     # Crea el menú de selección de flavors
     menu_items = [key["keypair"]["name"] for key in keyList]
-    menu = TerminalMenu(menu_entries=menu_items, title="Seleccione una key: ")
 
     # Muestra el menú y obtiene la selección del usuario
-    selected_index = menu.show()
+    selected_index = util.printMenu(["Seleccione un Par de llaves:"] + menu_items)
+    
     selected_key = keyList[selected_index]
     return selected_key["keypair"]
     
 
 def selectGroup(IP_GATEWAY,headers):
-    response = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers)
-    sgList = response.json()["security_groups"]
+    sgList = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers).json()["security_groups"]
+    menu_items = [f"{grupo['name']}|{['sg_rule',grupo['security_group_rules']]}" for grupo in sgList]
     
-    table_data = []
-    for sg in sgList:
-        flavor_data = [
-            sg["name"],
-            sg["description"],
-        ]
-        table_data.append(flavor_data)
-    
-    # Imprime la tabla
-    table = tabulate(table_data, headers=["Name","Description"], tablefmt="grid")
-    print(table)
-    
-    # Crea el menú de selección de flavors
-    menu_items = [sg["name"] for sg in sgList]
-    menu = TerminalMenu(menu_entries=menu_items, title="Seleccione un grupo de seguridad: ")
-
     # Muestra el menú y obtiene la selección del usuario
-    selected_index = menu.show()
-    selected_sg = sgList[selected_index]
+    selected_index = util.printMenu(["Seleccione un Grupo de Seguridad:"] + menu_items,
+                         comando="python3 modUtilidades.py {}")
+
+    selected_sg = sgList[selected_index-2]
     return selected_sg
     
-def crearVM():
-     
-    IP_GATEWAY = var.dirrecionIP
-    headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
+def crearVM(IP_GATEWAY:str, headers:dict[str,str]):
     
     while((nameVM:=util.printInput("Ingrese nombre de la VM: ").strip())==""):
         print("No puede estar vacio.")
@@ -136,8 +93,7 @@ def crearVM():
     if flavorVM is None: return 
         
     imageVM = selectImage(IP_GATEWAY,headers)
-    print("Imagen seleccionada")
-    print("Nombre: ", imageVM["name"] )
+    if imageVM is None: return 
     
     networkVM = selectNetwork(IP_GATEWAY,headers)
     print("Red seleccionada")
@@ -146,12 +102,8 @@ def crearVM():
     print("CIDR: ", networkVM["cidr"] )
 
     keyVM = selectKeypair(IP_GATEWAY,headers)
-    print("Key seleccionada")
-    print("Nombre: ", keyVM["name"] )
-    
+
     sgVM = selectGroup(IP_GATEWAY,headers)
-    print("Security Group seleccionado")
-    print("Nombre: ",sgVM["name"])
     
     body = {
             "server" : {
@@ -171,7 +123,81 @@ def crearVM():
     response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers",json=body,headers=headers)
     
     if response.status_code == 202:
-        print(f"\nRegla agregada exitosamente!")
+        util.printSuccess(f"\nRegla agregada exitosamente!")
     else:
-        print(f"\nHubo un problema, error {response.status_code}")
-    
+        util.printError(f"\nHubo un problema, error {response.status_code}")
+
+def menuVM():
+
+    IP_GATEWAY = var.dirrecionIP
+    headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
+
+    while True:
+        headers2 = {"X-OpenStack-Nova-API-Version": "2.73", "Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
+        listaVMs = req.get(f"http://{IP_GATEWAY}:8774/v2.1/servers/detail",headers=headers2).json()['servers']
+
+        listaImagenes = req.get(f"http://{IP_GATEWAY}:9292/v2/images",headers=headers).json()["images"]
+
+        # Le agrega un nombre a cada imagen
+        imgCache = {}
+        for vm in listaVMs:
+            imgId = vm["image"]["id"]
+
+            if imgId in imgCache:
+                vm["image"]["name"] = imgCache[imgId]
+                continue
+
+            for img in listaImagenes:
+                if img['id'] == imgId:
+                    vm["image"]["name"] = img['name']
+                    imgCache[imgId] = img['name']
+                    break
+
+        nombreVMs = [f"{vm['name']}|{['vm',vm]}" for vm in listaVMs]
+
+        opt = util.printMenu(["Opciones de Gestión de VMs:","Crear Nueva","Salir",None] + nombreVMs,
+                            comando = "python3 modUtilidades.py {}")
+
+        if opt == 0:
+            crearVM(IP_GATEWAY,headers)
+        elif opt == 1:
+            break
+        else:
+            vm = listaVMs[opt-3]
+
+            opt2 = util.printMenu([f"Opciones de la VM {vm['name']}:",
+                                   "Encender VM" if vm['status'] == 'SHUTOFF' else "Detener VM",
+                                   "Reiniciar VM","Eliminar VM","Salir"])
+                        
+            # Encender
+            if opt2 == 0:
+                action = "os-start" if vm['status'] == 'SHUTOFF' else "os-stop"
+
+                response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers/{vm['id']}/action",json={action: None},headers=headers)
+
+                if response.status_code == 202:
+                    util.printSuccess(f"\nLa VM {vm['name']} se está {'encendiendo' if action == 'os-start' else 'deteniendo'}. Esto podría tardar algunos minutos en completarse")
+                else:
+                    util.printError(f"\nHubo un problema, error {response.status_code}")
+                    # print(response.json())
+
+            # Reiniciar VM
+            if opt2 == 1:
+                tipo = "SOFT" if vm['status'] == 'ACTIVE' else "HARD"
+                response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers/{vm['id']}/action",json={"reboot": {"type": tipo}},headers=headers)
+
+                if response.status_code == 202:
+                    util.printSuccess(f"\nLa VM {vm['name']} se está reiniciando ({tipo} reboot). Esto podría tardar algunos minutos en completarse")
+                else:
+                    util.printError(f"\nHubo un problema, error {response.status_code}")
+                    # print(response.json())
+
+            # Eliminar VM
+            if opt2 == 2:
+                response = req.delete(f"http://{IP_GATEWAY}:8774/v2.1/servers/{vm['id']}",headers=headers)
+
+                if response.status_code == 204:
+                    util.printSuccess(f"\nLa VM {vm['name']} esta siendo eliminada. Esto podría tardar algunos minutos en completarse")
+                else:
+                    util.printError(f"\nHubo un problema, error {response.status_code}")
+                    # print(response.json())

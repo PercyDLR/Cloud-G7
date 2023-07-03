@@ -51,7 +51,7 @@ def menuImg() -> None:
                     response = req.put(f"http://{IP_GATEWAY}:9292/v2/images/{newImg.json()['id']}/file",headers=header2,data=f)
 
                 if response.status_code == 204:
-                    print(f"Se ha agregado la imagen {nombreImg} exitosamente.")
+                    util.printSuccess(f"Se ha agregado la imagen {nombreImg} exitosamente.")
                 else:
                     util.printError(f"Hubo un problema al cargar la imagen.")  
             else:
@@ -69,7 +69,7 @@ def menuImg() -> None:
             response = req.delete(f"http://{IP_GATEWAY}:9292/v2/images/{imagen['id']}",headers=headers)
             
             if response.status_code == 204:
-                print(f"Se ha eliminado la imagen {imagen['name']} exitosamente.")
+                util.printSuccess(f"Se ha eliminado la imagen {imagen['name']} exitosamente.")
             else:
                 util.printError(f"La imagen no pudo ser eliminada ({response.status_code})")
                 # print(response.json())
