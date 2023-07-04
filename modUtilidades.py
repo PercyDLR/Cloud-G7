@@ -117,7 +117,7 @@ def previewTable(tipo:str, info:dict):
             info["gateway_ip"],
             info["cidr"],
             f"{info['allocation_pools'][0]['start']} - {info['allocation_pools'][0]['end']}",
-            ", ".join(info["dns_nameservers"]),
+            "\n".join(info["dns_nameservers"]),
             info["description"]
         ]
         table_data.append(data)
@@ -131,8 +131,8 @@ def previewTable(tipo:str, info:dict):
                 "IPv4" if subred["ip_version"] == 4 else "IPv6",
                 subred["gateway_ip"],
                 subred["cidr"],
-                f"{subred['allocation_pools'][0]['start']} - {subred['allocation_pools'][0]['end']}",
-                ", ".join(subred["dns_nameservers"]),
+                f"Inicio: {subred['allocation_pools'][0]['start']}\nFin: {subred['allocation_pools'][0]['end']}",
+                "\n".join(subred["dns_nameservers"]),
                 subred["description"]
             ]
             table_data.append(data)

@@ -7,7 +7,8 @@ import funcionesMenu.Flavor as flavor
 import funcionesMenu.reglasSeguridad as sec
 import funcionesMenu.Provider as prov
 import funcionesMenu.Keypair as key
-from login import IngresarCredenciales
+from login import IngresarCredenciales,seleccionarProyecto
+import variables as var
 
 from typing import Dict, List, Any
 from tabulate import tabulate
@@ -63,8 +64,8 @@ if __name__=="__main__":
 
     # Se muestra el menú
     while True: 
-        opt = util.printMenu(["Opciones disponibles para realizar:",
-                              "Listar slices",
+        opt = util.printMenu([f"Opciones del Slice {var.dic['project']}:",
+                              "Cambiar de Slice",
                               "Crear slice",
                               "Editar slice",
                               "Administrar Redes Provider",
@@ -75,20 +76,7 @@ if __name__=="__main__":
                               "Gestión de VM",
                               "Salir"])
         if opt == 0:
-            list_slices = [[x.nombre] for x in datos["slices"]]
-            if(len(list_slices)==0): print("No hay slices creados...")
-            headers = ["Nombre del slice"]
-            while(inp1:=input("Desea buscar un Slice (1) o listar todo (2): ")) not in ["1","2"]:
-                print("No es una opcion valida")
-            if(inp1=="1"):
-                while(inp2:=input("Ingrese el nombre: ").strip()) =="":
-                    print("Tiene que indicar un nombre**")
-                print(f"Mostrando slices que contienen {inp2}")
-                list_find = [[list_slices[x][0]] for x in [list_slices.index(x) for x in list_slices if inp2 in x[0]]]
-                print(tabulate(list_find,headers=headers, tablefmt="fancy_grid"))
-            else: 
-                print(f"Mostrando todos los slices")
-                print(tabulate(list_slices,headers=headers, tablefmt="fancy_grid"))
+            seleccionarProyecto(var.dic['token'])
 
         elif opt == 1:
             s.crearSlice(datos["slices"],datos["gruposSeguridad"])
