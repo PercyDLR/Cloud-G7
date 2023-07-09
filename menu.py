@@ -7,7 +7,7 @@ import funcionesMenu.Flavor as flavor
 import funcionesMenu.reglasSeguridad as sec
 import funcionesMenu.Provider as prov
 import funcionesMenu.Keypair as key
-from login import IngresarCredenciales,seleccionarProyecto
+from login import IngresarCredenciales
 import variables as var
 
 from typing import Dict, List, Any
@@ -65,10 +65,7 @@ if __name__=="__main__":
     # Se muestra el menú
     while True: 
         opt = util.printMenu([f"Opciones del Slice {var.dic['project']}:",
-                              "Cambiar de Slice",
-                              "Eliminar Slice",
-                              "Crear slice",
-                              "Editar slice",
+                              "Gestión de Slices",
                               "Administrar Redes Provider",
                               "Administrar Keypairs",
                               "Administrar Flavors",
@@ -77,43 +74,25 @@ if __name__=="__main__":
                               "Gestión de VM",
                               "Salir"])
         if opt == 0:
-            seleccionarProyecto(var.dic['token'])
+            s.menuSlice(login=False)
 
         elif opt == 1:
-            s.eliminarSlice()
-
-        elif opt == 2:
-            s.crearSlice(datos["slices"],datos["gruposSeguridad"])
-
-        elif opt == 3:
-            list_slices_names = [x.nombre for x in datos["slices"]]
-            if(len(list_slices_names)!=0):
-                while(inp1:=input("Ingrese el nombre el slice:")) not in list_slices_names:
-                    print("El nombre del Slice no exite...")
-                idx = list_slices_names.index(inp1)
-                editSlice.changeCurrent(datos["slices"][idx], datos["imagenes"],datos["gruposSeguridad"],datos["slices"])
-                print("Ingresado al menu de Editar Slice")
-                editSlice.start()
-            else:
-                print("No hay slices creados")
-
-        elif opt == 4:
             prov.menuProvider()
         
-        elif opt == 5:
+        elif opt == 2:
             key.menuKeypair()
         
-        elif opt == 6:
+        elif opt == 3:
             flavor.menuFlavor()
 
-        elif opt == 7:
+        elif opt == 4:
             sec.menuSecGroup()
 
-        elif opt == 8:
+        elif opt == 5:
             img.menuImg()
             
-        elif opt == 9:
+        elif opt == 6:
             vm.menuVM()
         else:
-            print("\nSaliendo del programa...")
+            util.printError("\nSaliendo del programa...")
             break
