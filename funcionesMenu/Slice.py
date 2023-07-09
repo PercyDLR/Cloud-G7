@@ -1,11 +1,16 @@
-import modUtilidades as util
 from typing import List, Dict, Any
 from dataclasses import dataclass
-from funcionesMenu.reglasSeguridad import GrupoSeguridad
 from time import sleep
 import json
 from random import choices
+
 from funcionesMenu.editSlice import currentSlice
+from funcionesMenu.reglasSeguridad import GrupoSeguridad
+
+import modUtilidades as util
+from login import IngresarCredenciales
+import requests as req
+import variables as var
 
 @dataclass
 class Slice:
@@ -92,3 +97,33 @@ def crearSlice(listaSlices:List[currentSlice],listaGrupos:List[GrupoSeguridad]) 
         #listaSlices.append(Slice(nameSlice,topologia,grupo.nombre))
         listaSlices.append(currentSlice(nameSlice,topologia,grupo.nombre,"",[],[]))
         print(f"Slice {nameSlice} creado")
+
+def eliminarSlice():
+
+    headers = {"Content-Type": "application/json", "X-Auth-Token": str(var.dic["token"])}
+
+    if var.dic['project'] == "admin":
+        util.printError("\nEl slice admin no debe ser eliminado.")
+        return
+    
+    # Se pone un mensaje de confirmación
+    opt = util.printMenu([f"Está seguro de querer eliminar el slice actual? ({var.dic['project']})",'Sí','No'])
+    if opt == 1: return
+
+    # Se crea el request
+    response = req.delete(f"http://{var.dirrecionIP}:5000/v3/projects/{var.dic['projectID']}",headers=headers)
+
+    # Se verifica el resultado del request
+    if response.status_code == 204:
+        util.printSuccess(f"\nProyecto {var.dic['project']} eliminado exitosamente. Cambiando de grupo...\n")
+        
+        with open("credencial.txt","w") as f:
+            f.write("")
+
+        IngresarCredenciales()
+    else:
+        util.printError(f"\nHubo un problema, error {response.status_code}")
+
+    # Crear grupos para probar
+    # openstack project create <nombre>
+    # openstack role add --user admin --project <uuid> admin

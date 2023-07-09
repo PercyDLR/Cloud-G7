@@ -1,12 +1,11 @@
 import getpass
 from colorama import Fore,Style
 import requests
-from variables import dirrecionIP
 import variables
 import datetime
 from modUtilidades import printError,printSuccess,printInput,printMenu
 
-auth_url=f"http://{dirrecionIP}:5000/v3"
+auth_url=f"http://{variables.dirrecionIP}:5000/v3"
 
 def verificarCredencialesExistentes():
     try:
@@ -14,6 +13,7 @@ def verificarCredencialesExistentes():
             token = f.readline().rstrip()
             expiracion = f.readline().rstrip()
             project = f.readline().rstrip()
+            projectID = f.readline().rstrip()
 
         # print(f"{datetime.datetime.utcnow()=}\n {datetime.datetime.strptime(expiracion,'%Y-%m-%dT%H:%M:%S.%fZ')=}")
         # print(f"{datetime.datetime.utcnow() < datetime.datetime.strptime(expiracion,'%Y-%m-%dT%H:%M:%S.%fZ')}")
@@ -22,6 +22,7 @@ def verificarCredencialesExistentes():
             variables.dic["token"] = token
             variables.dic["expiration"] = expiracion
             variables.dic["project"] = project
+            variables.dic["projectID"] = projectID
             return True
         
     except FileNotFoundError as e:
@@ -36,7 +37,9 @@ def seleccionarProyecto(token):
 
     opt = printMenu(["Seleccione el slice a trabajar:","Cancelar",None] + nombreProyectos)
 
-    if opt == 0: return
+    if opt == 0: 
+        printError("\nCancelando Operacion...")
+        exit()
     
     data = {
         "auth": {
@@ -65,20 +68,19 @@ def seleccionarProyecto(token):
         variables.dic["token"] = response.headers["X-Subject-Token"]
         variables.dic['expiration'] = response.json()["token"]["expires_at"]
         variables.dic['project'] = listaProyectos[opt-2]['name']
+        variables.dic['projectID'] = listaProyectos[opt-2]['id']
         printSuccess("\nAutenticación exitosa")
 
         with open("credencial.txt","w") as f:
-            f.write(f"{variables.dic['token']}\n{variables.dic['expiration']}\n{variables.dic['project']}")
+            f.write(f"{variables.dic['token']}\n{variables.dic['expiration']}\n{variables.dic['project']}\n{variables.dic['projectID']}")
         
     else:
         printError(f"No se ha podido autenticar al usuario {response.status_code}")
         print(response.json())
         exit()
 
-
-
-def IngresarCredenciales():
-    if verificarCredencialesExistentes():
+def IngresarCredenciales(skip=False):
+    if not skip and verificarCredencialesExistentes():
         return
     
     while((user:=printInput("Ingrese su usuario: "))==""):
@@ -114,12 +116,8 @@ def IngresarCredenciales():
     global auth_url
     url = f"{auth_url}/auth/tokens?nocatalog"
     headers = {"Content-Type": "application/json"}
-
-    try:
-        response = requests.post(url, json=data, headers=headers)
-    except Exception:
-        printError("No se ha podido autenticar al usuario")
-        exit()
+    
+    response = requests.post(url, json=data, headers=headers)
     
     status_code = response.status_code
 
@@ -130,7 +128,7 @@ def IngresarCredenciales():
         seleccionarProyecto(response.headers["X-Subject-Token"])
         
     else:
-        printError("No se ha podido autenticar al usuario")
+        printError(f"No se ha podido autenticar al usuario ({response.status_code})")
         exit()
 
 if __name__ == '__main__':

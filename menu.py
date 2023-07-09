@@ -66,6 +66,7 @@ if __name__=="__main__":
     while True: 
         opt = util.printMenu([f"Opciones del Slice {var.dic['project']}:",
                               "Cambiar de Slice",
+                              "Eliminar Slice",
                               "Crear slice",
                               "Editar slice",
                               "Administrar Redes Provider",
@@ -79,9 +80,12 @@ if __name__=="__main__":
             seleccionarProyecto(var.dic['token'])
 
         elif opt == 1:
-            s.crearSlice(datos["slices"],datos["gruposSeguridad"])
+            s.eliminarSlice()
 
         elif opt == 2:
+            s.crearSlice(datos["slices"],datos["gruposSeguridad"])
+
+        elif opt == 3:
             list_slices_names = [x.nombre for x in datos["slices"]]
             if(len(list_slices_names)!=0):
                 while(inp1:=input("Ingrese el nombre el slice:")) not in list_slices_names:
@@ -93,22 +97,22 @@ if __name__=="__main__":
             else:
                 print("No hay slices creados")
 
-        elif opt == 3:
+        elif opt == 4:
             prov.menuProvider()
         
-        elif opt == 4:
+        elif opt == 5:
             key.menuKeypair()
         
-        elif opt == 5:
+        elif opt == 6:
             flavor.menuFlavor()
 
-        elif opt == 6:
+        elif opt == 7:
             sec.menuSecGroup()
 
-        elif opt == 7:
+        elif opt == 8:
             img.menuImg()
             
-        elif opt == 8:
+        elif opt == 9:
             vm.menuVM()
         else:
             print("\nSaliendo del programa...")
