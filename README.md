@@ -14,5 +14,5 @@ Los integrantes del grupo son:
 - La dependencia `tkinter`, usada para desplegar el selector de archivos no funciona en todos los entornos:
     - **Ubuntu:** Ejecutar `sudo apt install python3-tkinter`.
     - **Fedora:** Ninguna acción necesaria.
-    - **ArchLinux:** Ejecutar `sudo pacman -S python3-tkinter tk`.
+    - **ArchLinux:** Ejecutar `sudo pacman -S tk`.
     - **WSL:** Ademaś del paso de Ubuntu, es necesario habilitar la ejecución de GUI, como se indica [aquí](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps).
