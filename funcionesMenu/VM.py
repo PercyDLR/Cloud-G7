@@ -54,7 +54,7 @@ def selectAvailabilityZone(IP_GATEWAY:str, flavor:dict):
                     if puntaje >= 2:
                         best_worker = zona
 
-                    print((best_worker['host'],puntaje))
+                    #print((best_worker['host'],puntaje))
             except Exception as e:
                 pass
 

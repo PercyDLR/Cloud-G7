@@ -1,8 +1,9 @@
 import requests as req
 import modUtilidades as util
-from ipaddress import ip_network,ip_address
+from ipaddress import ip_network,ip_address, IPv4Network
 import variables as var
 from random import randint
+from time import sleep
 
 class Red:
     def __init__(self,status_code) -> None:
@@ -134,25 +135,35 @@ def menuProvider():
 
             if existe:
                 util.printError(f"La red {nombreRed} ya existe. Cree una red con un nombre distinto.")
-            
             # Se crea la red
             else:
+                vlan = req.get(f'http://{IP_GATEWAY}:6700/getAvailableVlan').json()['response']
                 body = {
                     "network": {
                         "name": nombreRed,
                         "admin_state_up": True,
                         "provider:network_type": "vlan",
                         "provider:physical_network": "provider",
-                        "provider:segmentation_id": randint(1,4095)
+                        "provider:segmentation_id": vlan
                     }
                 }
+                
                 nuevaRed = req.post(f"http://{IP_GATEWAY}:9696/v2.0/networks",headers=headers,json=body)
                 
                 if nuevaRed.status_code == 201:
+                    temp = req.get(f'http://{IP_GATEWAY}:6700/setAvailableVlan')
+                    util.printSuccess(f"Se esta configurando la extensión vxlan entre las zonas de disponibilidad de la red provider...")
+                    repVxlan= req.post(f"http://{IP_GATEWAY}:6700/mapVxlan",json={
+                        'vlan' : vlan,
+                        'leafs' : ['Leaf1','Leaf2'],
+                        'interfaces' : ['0-ens3','0-ens4','1-ens3','1-ens4']
+                    })
+
+                    sleep(3.5)
                     util.printSuccess(f"Red {nombreRed} creada exitosamente!")
                 else:
                     util.printError(f"Hubo un problema creando la red ({nuevaRed.status_code})")
-                    # print(nuevaRed.json())
+                    #print(nuevaRed.json())
         
         # Menú de la red elegida
         else:
@@ -209,8 +220,21 @@ def menuProvider():
                     }
                 }
 
+                network_temp = IPv4Network(cidr)
+                # Find the first available IP address
+                for ip in network_temp.hosts():
+                    first_available_ip = str(ip)
+                    break
+
+                # Print the first available IP address with CIDR notation
+                gwip = f"{first_available_ip}/{network_temp.prefixlen}"
+                vlan = red['provider:segmentation_id']
+
+
+
                 nuevaSubred = req.post(f"http://{IP_GATEWAY}:9696/v2.0/subnets",headers=headers,json=body)
                 if nuevaSubred.status_code == 201:
+                    req.post(f"http://{IP_GATEWAY}:6700/createGateway", json={'vlan':vlan, 'ip':gwip})
                     util.printSuccess(f"Subred {nombreSubred} creada exitosamente!")
                 else:
                     util.printError(f"\nHubo un problema al crear la subred ({nuevaSubred.status_code})")
