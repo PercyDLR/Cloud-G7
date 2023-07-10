@@ -48,6 +48,9 @@ def printError(msg:str):
 def printSuccess(msg:str):
     print(f"{Fore.GREEN}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
 
+def printInfo(msg:str):
+    print(f"{Fore.CYAN}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
+
 def printInput(msg:str):
     return input(f"{Fore.CYAN}{Style.BRIGHT}{msg}{Style.RESET_ALL}")
 

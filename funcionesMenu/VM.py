@@ -1,6 +1,7 @@
 import requests as req
 import variables as var
 import modUtilidades as util
+import funcionesMenu.Keypair as key
 from time import sleep
 
 def selectFlavor(IP_GATEWAY,headers):
@@ -114,14 +115,16 @@ def selectKeypair(IP_GATEWAY,headers):
     menu_items = [key["keypair"]["name"] for key in keyList]
 
     # Muestra el menú y obtiene la selección del usuario
-    selected_index = util.printMenu(["Seleccione un Par de llaves:","Cancelar",None] + menu_items)
+    selected_index = util.printMenu(["Seleccione un Par de llaves:","Agregar","Cancelar",None] + menu_items)
     
-    if selected_index == 0: return
+    if selected_index == 1: return
 
-    selected_key = keyList[selected_index-2]
+    elif selected_index == 0:
+        return key.menuKeypair()
+
+    selected_key = keyList[selected_index-3]
     return selected_key["keypair"]
     
-
 def selectGroup(IP_GATEWAY,headers):
     sgList = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers).json()["security_groups"]
     menu_items = [f"{grupo['name']}|{['sg_rule',grupo['security_group_rules']]}" for grupo in sgList]
