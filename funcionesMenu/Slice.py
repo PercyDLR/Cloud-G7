@@ -40,10 +40,9 @@ def seleccionarProyecto(slice:dict):
         var.dic['expiration'] = response.json()["token"]["expires_at"]
         var.dic['project'] = slice['name']
         var.dic['projectID'] = slice['id']
-        util.printSuccess("\nAutenticación exitosa")
 
         with open("credencial.txt","w") as f:
-            f.write(f"{var.dic['token']}\n{var.dic['expiration']}\n{var.dic['project']}\n{var.dic['projectID']}")
+            f.write(f"{var.dic['token']}\n{var.dic['expiration']}\n{var.dic['project']}\n{var.dic['projectID']}\n{['Worker1','Worker2','Worker3']}")
         
     else:
         util.printError(f"No se ha podido autenticar al usuario {response.status_code}")
@@ -151,9 +150,9 @@ def menuSlice(login:bool):
         currentSlice = listaProyectos[opt-3]
 
         if currentSlice['name'] != 'admin':
-            opt2 = util.printMenu(['Opciones del Slice:','Editar Slice','Eliminar Slice','Cancelar'])
+            opt2 = util.printMenu(['Opciones del Slice:','Configurar Slice','Eliminar Slice','Cancelar'])
         else:
-            opt2 = util.printMenu(['Opciones del Slice:','Editar Slice','Cancelar'])
+            opt2 = util.printMenu(['Opciones del Slice:','Configurar Slice','Cancelar'])
 
         # Cambiar de Slice
         if opt2 == 0:

@@ -66,6 +66,7 @@ if __name__=="__main__":
     while True: 
         opt = util.printMenu([f"Opciones del Slice {var.dic['project']}:",
                               "Gestión de Slices",
+                              "Elegir Zonas de Disponibilidad",
                               "Administrar Redes Provider",
                               "Administrar Keypairs",
                               "Administrar Flavors",
@@ -77,21 +78,40 @@ if __name__=="__main__":
             s.menuSlice(login=False)
 
         elif opt == 1:
+            print(var.zonasElegidas)
+            zonas = ["Worker1","Worker2","Worker3"]
+            idxs = util.printMenu(["Elegir zonas de disponibilidad","Cancelar",None]+zonas,multiselect=True,
+                                  preselected_entries=var.zonasElegidas) #type: ignore
+            
+            if 0 in idxs: continue # type:ignore
+
+            var.zonasElegidas = []
+            for idx in idxs: # type: ignore
+                var.zonasElegidas.append(zonas[idx-2])
+            
+            # Se modifica la última línea para tener las zonas de disponibilidad deseadas
+            lines = open("credencial.txt", 'r').readlines()
+            lines[-1] = str(var.zonasElegidas)
+            open("credencial.txt", 'w').writelines(lines)
+
+            util.printSuccess("\nZonas de disponibilidad actualizadas!")
+
+        elif opt == 2:
             prov.menuProvider()
         
-        elif opt == 2:
+        elif opt == 3:
             key.menuKeypair()
         
-        elif opt == 3:
+        elif opt == 4:
             flavor.menuFlavor()
 
-        elif opt == 4:
+        elif opt == 5:
             sec.menuSecGroup()
 
-        elif opt == 5:
+        elif opt == 6:
             img.menuImg()
             
-        elif opt == 6:
+        elif opt == 7:
             vm.menuVM()
         else:
             util.printError("\nSaliendo del programa...")

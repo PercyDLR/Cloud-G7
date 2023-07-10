@@ -7,3 +7,6 @@ dic = {
     "expiration": "",
     "project": ""
 }
+
+# Zonas Elegidas
+zonasElegidas = []

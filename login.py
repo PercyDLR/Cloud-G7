@@ -15,6 +15,7 @@ def verificarCredencialesExistentes():
             expiracion = f.readline().rstrip()
             project = f.readline().rstrip()
             projectID = f.readline().rstrip()
+            zonas = eval(f.readline().rstrip())
 
         # print(f"{datetime.datetime.utcnow()=}\n {datetime.datetime.strptime(expiracion,'%Y-%m-%dT%H:%M:%S.%fZ')=}")
         # print(f"{datetime.datetime.utcnow() < datetime.datetime.strptime(expiracion,'%Y-%m-%dT%H:%M:%S.%fZ')}")
@@ -24,6 +25,7 @@ def verificarCredencialesExistentes():
             variables.dic["expiration"] = expiracion
             variables.dic["project"] = project
             variables.dic["projectID"] = projectID
+            variables.zonasElegidas = zonas
             return True
         
     except FileNotFoundError as e:
@@ -73,10 +75,12 @@ def IngresarCredenciales(skip=False):
     status_code = response.status_code
 
     if status_code == 201:
+        printSuccess("\nAutenticación exitosa")
+
         # print(f"Su token es: {token}")
         # print(f"Su token expira en: {expiration}")
+        
         variables.dic['token'] = response.headers["X-Subject-Token"]
-
         s.menuSlice(login=True)
         
     else:
