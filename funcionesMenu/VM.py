@@ -17,7 +17,49 @@ def selectFlavor(IP_GATEWAY,headers):
     selected_flavor = flavorsList[opt]
     
     return selected_flavor
-        
+
+def selectAvailabilityZone(IP_GATEWAY:str, flavor:dict):
+    listaZonas = req.get(f"http://{IP_GATEWAY}:6700/getStatistics").json()['hosts']
+
+    print(listaZonas)
+    best_worker = {'host': '','data':{'cpu': 0, 'disk': 0, 'memory': 0, 'vms': 10000}}
+
+    # Se analizan los recursos de cada availability zone
+    for zona in listaZonas:
+        if zona['host'] in var.zonasElegidas:       # Si está en las zonas elegidas
+            resources = zona['data']                
+
+            # Se analiza si una máquina de ese flavor puede entrar en esa zona
+            if  resources['cpu'] >= flavor['vcpus'] and resources['disk'] >= flavor['disk'] and \
+                resources['memory'] >= flavor['ram']:
+                
+                puntaje = 0
+                best_resources = best_worker['data']
+
+                # Se analiza la zona con más recursos y menos máquinas
+                if resources['cpu'] > best_resources['cpu']:
+                    puntaje += 1
+                
+                if resources['disk'] > best_resources['disk']:
+                    puntaje += 1
+
+                if resources['memory'] > best_resources['memory']:
+                    puntaje += 1
+                
+                if resources['vms'] < best_resources['vms']:
+                    puntaje += 1
+                
+                if puntaje >= 2:
+                    best_worker = zona
+
+                print((best_worker['host'],puntaje))
+
+    if best_worker['host'] != '':
+        util.printSuccess(f"\nEl mejor worker es {best_worker['host']}")
+        return best_worker
+    else:
+        util.printError(f"Ninguna de las zonas elegidas puede albergar una VM de estas características")
+        return
 
 def selectImage(IP_GATEWAY,headers):
     
@@ -28,9 +70,11 @@ def selectImage(IP_GATEWAY,headers):
     menu_items = [image["name"] for image in imagesList]
 
     # Muestra el menú y obtiene la selección del usuario
-    selected_index = util.printMenu(["Seleccione una imagen:"] + menu_items)
+    selected_index = util.printMenu(["Seleccione una imagen:","Cancelar",None] + menu_items)
         
-    selected_image = imagesList[selected_index]
+    if selected_index == 0: return
+
+    selected_image = imagesList[selected_index-2]
     return selected_image
 
 def selectNetwork(IP_GATEWAY,headers):
@@ -53,10 +97,12 @@ def selectNetwork(IP_GATEWAY,headers):
     menu_items = [f"{subnet['name']}|{['subred_list',subnet]}" for subnet in subnetsListActive]
     #print(eval(menu_items[0].split('|')[1])[1])
 
-    selected_index = util.printMenu(["Seleccione una subnet:"] + menu_items,
+    selected_index = util.printMenu(["Seleccione una subnet:","Cancelar",None] + menu_items,
                          comando="python3 modUtilidades.py {}")
 
-    selected_subnet = subnetsListActive[selected_index] 
+    if selected_index == 0: return
+
+    selected_subnet = subnetsListActive[selected_index-2] 
     return selected_subnet
 
 def selectKeypair(IP_GATEWAY,headers):
@@ -67,9 +113,11 @@ def selectKeypair(IP_GATEWAY,headers):
     menu_items = [key["keypair"]["name"] for key in keyList]
 
     # Muestra el menú y obtiene la selección del usuario
-    selected_index = util.printMenu(["Seleccione un Par de llaves:"] + menu_items)
+    selected_index = util.printMenu(["Seleccione un Par de llaves:","Cancelar",None] + menu_items)
     
-    selected_key = keyList[selected_index]
+    if selected_index == 0: return
+
+    selected_key = keyList[selected_index-2]
     return selected_key["keypair"]
     
 
@@ -78,8 +126,10 @@ def selectGroup(IP_GATEWAY,headers):
     menu_items = [f"{grupo['name']}|{['sg_rule',grupo['security_group_rules']]}" for grupo in sgList]
     
     # Muestra el menú y obtiene la selección del usuario
-    selected_index = util.printMenu(["Seleccione un Grupo de Seguridad:"] + menu_items,
+    selected_index = util.printMenu(["Seleccione un Grupo de Seguridad:","Cancelar",None] + menu_items,
                          comando="python3 modUtilidades.py {}")
+
+    if selected_index == 0: return
 
     selected_sg = sgList[selected_index-2]
     return selected_sg
@@ -87,23 +137,25 @@ def selectGroup(IP_GATEWAY,headers):
 def crearVM(IP_GATEWAY:str, headers:dict[str,str]):
     
     while((nameVM:=util.printInput("Ingrese nombre de la VM: ").strip())==""):
-        print("No puede estar vacio.")
+        util.printError("No puede estar vacio.")
     
     flavorVM = selectFlavor(IP_GATEWAY,headers)
     if flavorVM is None: return 
-        
+    
+    host = selectAvailabilityZone(IP_GATEWAY,flavorVM)
+    if host is None: return
+
     imageVM = selectImage(IP_GATEWAY,headers)
     if imageVM is None: return 
     
     networkVM = selectNetwork(IP_GATEWAY,headers)
-    print("Red seleccionada")
-    print("Network: ", networkVM["network_name"] )
-    print("Subnet: ", networkVM["name"] )
-    print("CIDR: ", networkVM["cidr"] )
+    if networkVM is None: return
 
     keyVM = selectKeypair(IP_GATEWAY,headers)
+    if keyVM is None: return
 
     sgVM = selectGroup(IP_GATEWAY,headers)
+    if sgVM is None: return
     
     body = {
             "server" : {
@@ -116,16 +168,19 @@ def crearVM(IP_GATEWAY:str, headers:dict[str,str]):
                 }],
                 "security_groups": [{
                     "name": sgVM["name"]
-                }]
+                }],
+                "host":host['host']
             }
         }
     
-    response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers",json=body,headers=headers)
+    headers2 = {"X-OpenStack-Nova-API-Version": "2.87", "Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
+    response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers",json=body,headers=headers2)
     
     if response.status_code == 202:
-        util.printSuccess(f"\nRegla agregada exitosamente!")
+        util.printSuccess(f"\nVM creada exitosamente!")
     else:
         util.printError(f"\nHubo un problema, error {response.status_code}")
+        print(response.json())
 
 def menuVM():
 

@@ -149,7 +149,7 @@ def menuProvider():
                 nuevaRed = req.post(f"http://{IP_GATEWAY}:9696/v2.0/networks",headers=headers,json=body)
                 
                 if nuevaRed.status_code == 201:
-                    print(f"Red {nombreRed} creada exitosamente!")
+                    util.printSuccess(f"Red {nombreRed} creada exitosamente!")
                 else:
                     util.printError(f"Hubo un problema creando la red ({nuevaRed.status_code})")
                     # print(nuevaRed.json())
@@ -211,7 +211,7 @@ def menuProvider():
 
                 nuevaSubred = req.post(f"http://{IP_GATEWAY}:9696/v2.0/subnets",headers=headers,json=body)
                 if nuevaSubred.status_code == 201:
-                    print(f"Subred {nombreSubred} creada exitosamente!")
+                    util.printSuccess(f"Subred {nombreSubred} creada exitosamente!")
                 else:
                     util.printError(f"\nHubo un problema al crear la subred ({nuevaSubred.status_code})")
                     # print(nuevaSubred.json())
@@ -243,4 +243,4 @@ def menuProvider():
                     util.printError(f"La red {red['name']} está siendo usada aún (Error {response.status_code})")
                 else:
                     util.printError(f"Hubo un error al eliminar la red {red['name']} ({response.status_code})")
-                    print(response.json())
+                    # print(response.json())

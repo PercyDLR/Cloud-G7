@@ -46,7 +46,7 @@ def seleccionarProyecto(slice:dict):
         
     else:
         util.printError(f"No se ha podido autenticar al usuario {response.status_code}")
-        print(response.json())
+        # print(response.json())
         exit()
 
 def crearSlice(listaSlices:list,listaGrupos:list):

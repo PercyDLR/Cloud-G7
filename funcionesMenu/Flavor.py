@@ -2,11 +2,6 @@ import requests as req
 import variables as var
 import modUtilidades as util
 
-def imprimirTabla(objeto:dict) -> None:
-    print(objeto)
-    return objeto["id"]
-
-
 def menuFlavor() -> None:
     
     IP_GATEWAY = var.dirrecionIP
@@ -33,7 +28,7 @@ def menuFlavor() -> None:
         # Crear flavor
         elif opt == 0:
 
-            nombre = input("\nIngrese un nombre para el Flavor: ").strip()
+            nombre = util.printInput("\nIngrese un nombre para el Flavor: ").strip()
 
             idx = util.printMenu(["Elija la cantidad de memoria RAM:",
                                   "128 MiB","256 MiB","512 MiB","1 GiB","2 GiB"])
@@ -41,21 +36,21 @@ def menuFlavor() -> None:
             
             while True:
                 try:
-                    disco = int(input("Capacidad de Disco (GiB): ").strip())
+                    disco = int(util.printInput("Capacidad de Disco (GiB): ").strip())
                     if disco < 1 or disco > 5: 
                         raise ValueError
                     break
                 except ValueError:
-                    util.printError("La capacidad de disco debe ser un número entero positivo menor a 5 GiB")
+                    util.printError("La capacidad de disco debe ser un número entero positivo menor igual a 5 GiB")
 
             while True:
                 try:
-                    vcpus = int(input("Cantidad de VCPUs: ").strip())
+                    vcpus = int(util.printInput("Cantidad de VCPUs: ").strip())
                     if vcpus < 1 or vcpus > 4: 
                         raise ValueError
                     break
                 except ValueError:
-                    util.printError("La cantidad de VCPUs debe ser un número positivo menor a 4")
+                    util.printError("La cantidad de VCPUs debe ser un número positivo menorigual a 4")
 
             body = {
                 "flavor": {
@@ -68,7 +63,7 @@ def menuFlavor() -> None:
             newFlavor = req.post(f"http://{IP_GATEWAY}:8774/v2.1/flavors",headers=headers,json=body)
 
             if newFlavor.status_code == 200:
-                print(f"\nSe ha agregado el flavor {nombre} exitosamente")
+                util.printSuccess(f"\nSe ha agregado el flavor {nombre} exitosamente")
             else:
                 util.printError(f"\nHubo un problema al crear el flavor ({newFlavor.status_code})")
                 # print(newFlavor.json())
@@ -83,7 +78,7 @@ def menuFlavor() -> None:
                 response = req.delete(f"http://{IP_GATEWAY}:8774/v2.1/flavors/{flavor['id']}",headers=headers)
 
                 if response.status_code == 202:
-                    print(f"\nEl flavor {flavor['name']} se eliminó exitosamente")
+                    util.printSuccess(f"\nEl flavor {flavor['name']} se eliminó exitosamente")
                 else:
                     util.printError(f"\nHubo un problema al eliminar el flavor ({response.status_code})")
         
