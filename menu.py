@@ -1,6 +1,5 @@
 import modUtilidades as util
 import funcionesMenu.VM as vm
-import funcionesMenu.editSlice as editSlice
 import funcionesMenu.Slice as s
 import funcionesMenu.Imagen as img
 import funcionesMenu.Flavor as flavor
@@ -9,37 +8,7 @@ import funcionesMenu.Provider as prov
 import funcionesMenu.Keypair as key
 from login import IngresarCredenciales
 import variables as var
-
-from typing import Dict, List, Any
-from tabulate import tabulate
 from colorama import Fore, Style
-
-from clases.VM import VM
-from funcionesMenu.Imagen import Imagen
-from funcionesMenu.reglasSeguridad import GrupoSeguridad
-
-
-
-def updateSlice(sliceSave : editSlice.currentSlice):
-    datos_sesion["slices"]= [x if x.nombre != sliceSave.nombre else sliceSave for x in datos_sesion["slices"]]
-
-def obtenerDatos() -> Dict[str, List[Any]]:
-    global datos_sesion
-    datos_sesion={"slices":[],"gruposSeguridad":[],"imagenes":[Imagen("Cirros0.61","/home/ubuntu/cirros"),Imagen("Ubuntu22.02","/home/ubuntu/Ubuntu")
-                                                                ,Imagen("CentOS","/home/ubuntu/centos")]}
-    datos_sesion["gruposSeguridad"] = [GrupoSeguridad("Grupo1",[])]
-    datos_sesion["slices"]= [editSlice.currentSlice(
-    "SliceG7",
-    "Anillo",
-    "Grupo1",
-    "192.168.100.0/24",
-    [VM("vm1","Ubuntu22.02",5901,1024,51232,2,"ON"),
-     VM("localServer","CentOS",5903,1024,20128,2,"OFF"),
-     VM("vm2","CentOS",5903,2024,20128,1,"OFF"),
-     VM("web_app","Ubuntu22.02",5904,1024,51232,2,"ON")],
-     [("vm1","vm2"),("vm2","localServer"),("localServer","web_app"),("web_app","vm1")])]
-    return datos_sesion
-
 
 # Función Main
 if __name__=="__main__":
@@ -59,8 +28,6 @@ if __name__=="__main__":
 
     # Logueo
     IngresarCredenciales()
-    datos = obtenerDatos()
-    datos_sesion_dict={}
 
     # Se muestra el menú
     while True: 
@@ -78,20 +45,26 @@ if __name__=="__main__":
             s.menuSlice(login=False)
 
         elif opt == 1:
-            print(var.zonasElegidas)
             zonas = ["Worker1","Worker2","Worker3"]
+
+            preselect = [int(zona[6:7])+1 for zona in var.dic['zonasElegidas']]
+
             idxs = util.printMenu(["Elegir zonas de disponibilidad","Cancelar",None]+zonas,multiselect=True,
-                                  preselected_entries=var.zonasElegidas) #type: ignore
+                                  preselected_entries=preselect) #type: ignore
             
             if 0 in idxs: continue # type:ignore
 
-            var.zonasElegidas = []
+            zonasElegidas = []
             for idx in idxs: # type: ignore
-                var.zonasElegidas.append(zonas[idx-2])
+                zonasElegidas.append(zonas[idx-2])
+            
+            var.dic['zonasElegidas'] = zonasElegidas
+
+            print(zonasElegidas)
             
             # Se modifica la última línea para tener las zonas de disponibilidad deseadas
             lines = open("credencial.txt", 'r').readlines()
-            lines[-1] = str(var.zonasElegidas)
+            lines[-1] = str(zonasElegidas)
             open("credencial.txt", 'w').writelines(lines)
 
             util.printSuccess("\nZonas de disponibilidad actualizadas!")

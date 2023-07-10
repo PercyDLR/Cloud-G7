@@ -5,8 +5,6 @@ dirrecionIP = "10.20.12.90"
 dic = {
     "token": "",
     "expiration": "",
-    "project": ""
+    "project": "",
+    "zonasElegidas": []
 }
-
-# Zonas Elegidas
-zonasElegidas = []

@@ -40,6 +40,7 @@ def seleccionarProyecto(slice:dict):
         var.dic['expiration'] = response.json()["token"]["expires_at"]
         var.dic['project'] = slice['name']
         var.dic['projectID'] = slice['id']
+        var.dic['zonasElegidas'] = ["Worker1","Worker2","Worker3"]
 
         with open("credencial.txt","w") as f:
             f.write(f"{var.dic['token']}\n{var.dic['expiration']}\n{var.dic['project']}\n{var.dic['projectID']}\n{['Worker1','Worker2','Worker3']}")

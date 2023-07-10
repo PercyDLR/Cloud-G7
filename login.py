@@ -25,7 +25,7 @@ def verificarCredencialesExistentes():
             variables.dic["expiration"] = expiracion
             variables.dic["project"] = project
             variables.dic["projectID"] = projectID
-            variables.zonasElegidas = zonas
+            variables.dic['zonasElegidas'] = zonas
             return True
         
     except FileNotFoundError as e:
@@ -79,7 +79,7 @@ def IngresarCredenciales(skip=False):
 
         # print(f"Su token es: {token}")
         # print(f"Su token expira en: {expiration}")
-        
+
         variables.dic['token'] = response.headers["X-Subject-Token"]
         s.menuSlice(login=True)
         

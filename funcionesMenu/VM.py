@@ -26,7 +26,7 @@ def selectAvailabilityZone(IP_GATEWAY:str, flavor:dict):
 
     # Se analizan los recursos de cada availability zone
     for zona in listaZonas:
-        if zona['host'] in var.zonasElegidas:       # Si está en las zonas elegidas
+        if zona['host'] in var.dic['zonasElegidas']:       # Si está en las zonas elegidas
             resources = zona['data']                
 
             # Se analiza si una máquina de ese flavor puede entrar en esa zona
