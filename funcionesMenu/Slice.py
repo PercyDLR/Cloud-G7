@@ -122,7 +122,7 @@ def eliminarSlice(slice:dict):
         with open("credencial.txt","w") as f:
             f.write("")
 
-        IngresarCredenciales()
+        IngresarCredenciales(skip=True)
     else:
         util.printError(f"\nHubo un problema, error {response.status_code}")
 
@@ -145,29 +145,22 @@ def menuSlice(login:bool):
         while (nombre:= util.printInput("\n> Ingrese nombre del Slice: ")) == "" or nombre in nombreProyectos:
                 print("\nDebe ingresar un nombre para el slice que no sea repetido")
         
-        topos = ["Lineal", "Malla", "Arbol", "Anillo", "Bus"]
-        topo = util.printMenu(["Elija una topologia base para el slice:","Lineal", "Malla", "Arbol", "Anillo", "Bus"])
+        # topo = util.printMenu(["Elija una topologia base para el slice:","Lineal", "Malla", "Arbol", "Anillo", "Bus"])
 
         proyecto_crear=  {'project': {'name': nombre, 'enabled': True , 'domain_id' : "default"}}
 
         response = req.post('http://' + var.dirrecionIP + ':5000/v3/projects', headers=headers, json=proyecto_crear).json()
-
+        # print(response)
 
         responseRole = req.put('http://' + var.dirrecionIP + f':5000/v3/projects/{response["project"]["id"]}/users/{var.userid}/roles/1b7359c3207348cba2a71315f1a2f575', headers=headers)
+        # print(responseRole)
 
         #print(responseRole,f"\n{response['project']['id']}")
+
 
         project_id = response['project']['id']
 
         util.printSuccess(f"\nSlice {nombre} creado exitosamente. Cambiando de grupo...\n")
-
-        slice_data={
-            "name": nombre,
-            "id" : response["project"]["id"],
-            "topology" : topos[topo]
-        }
-
-        respSave = req.post(f"http://{var.dirrecionIP}:6700/saveSlice", json=slice_data)
 
         seleccionarProyecto(response["project"])
 
