@@ -43,6 +43,13 @@ def seleccionarProyecto(slice:dict):
         var.dic['projectID'] = slice['id']
         var.dic['zonasElegidas'] = ["Worker1","Worker2","Worker3"]
 
+
+        try:
+            responseOrq = req.get(f"http://{var.dirrecionIP}:6700/getSliceInfo",params={"slice_id":var.dic["projectID"]}).json()
+            var.dic["topology"] = responseOrq["topology"]
+        except Exception as e:
+            var.dic["topology"] = "No definida"
+
         with open("credencial.txt","w") as f:
             f.write(f"{var.dic['token']}\n{var.dic['expiration']}\n{var.dic['project']}\n{var.dic['projectID']}\n{['Worker1','Worker2','Worker3']}")
         
@@ -127,6 +134,7 @@ def menuSlice(login:bool):
     "Muestra el menú de gestión de slices"
     headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
     
+
     listaProyectos = req.get(f"http://{var.dirrecionIP}:5000/v3/auth/projects",params={"domain_id":f"{var.username}"},headers=headers).json()['projects']
     nombreProyectos = [project['name'] for project in listaProyectos]
 
@@ -137,6 +145,7 @@ def menuSlice(login:bool):
         while (nombre:= util.printInput("\n> Ingrese nombre del Slice: ")) == "" or nombre in nombreProyectos:
                 print("\nDebe ingresar un nombre para el slice que no sea repetido")
         
+        topos = ["Lineal", "Malla", "Arbol", "Anillo", "Bus"]
         topo = util.printMenu(["Elija una topologia base para el slice:","Lineal", "Malla", "Arbol", "Anillo", "Bus"])
 
         proyecto_crear=  {'project': {'name': nombre, 'enabled': True , 'domain_id' : "default"}}
@@ -146,15 +155,19 @@ def menuSlice(login:bool):
 
         responseRole = req.put('http://' + var.dirrecionIP + f':5000/v3/projects/{response["project"]["id"]}/users/{var.userid}/roles/1b7359c3207348cba2a71315f1a2f575', headers=headers)
 
-
         #print(responseRole,f"\n{response['project']['id']}")
-
 
         project_id = response['project']['id']
 
         util.printSuccess(f"\nSlice {nombre} creado exitosamente. Cambiando de grupo...\n")
 
+        slice_data={
+            "name": nombre,
+            "id" : response["project"]["id"],
+            "topology" : topos[topo]
+        }
 
+        respSave = req.post(f"http://{var.dirrecionIP}:6700/saveSlice", json=slice_data)
 
         seleccionarProyecto(response["project"])
 

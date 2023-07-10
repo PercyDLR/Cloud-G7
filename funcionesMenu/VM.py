@@ -23,45 +23,47 @@ def selectFlavor(IP_GATEWAY,headers):
 def selectAvailabilityZone(IP_GATEWAY:str, flavor:dict):
     listaZonas = req.get(f"http://{IP_GATEWAY}:6700/getStatistics").json()['hosts']
 
-    print(listaZonas)
+    #print(listaZonas)
     best_worker = {'host': '','data':{'cpu': 0, 'disk': 0, 'memory': 0, 'vms': 10000}}
 
     # Se analizan los recursos de cada availability zone
     for zona in listaZonas:
-        if zona['host'] in var.dic['zonasElegidas']:       # Si está en las zonas elegidas
-            resources = zona['data']                
+        if zona['host'] in var.dic['zonasElegidas']:
+            try:       # Si está en las zonas elegidas
+                resources = zona['data']                
+                # Se analiza si una máquina de ese flavor puede entrar en esa zona
+                if  resources['cpu'] >= flavor['vcpus'] and resources['disk'] >= flavor['disk'] and \
+                    resources['memory'] >= flavor['ram']:
+                    
+                    puntaje = 0
+                    best_resources = best_worker['data']
 
-            # Se analiza si una máquina de ese flavor puede entrar en esa zona
-            if  resources['cpu'] >= flavor['vcpus'] and resources['disk'] >= flavor['disk'] and \
-                resources['memory'] >= flavor['ram']:
-                
-                puntaje = 0
-                best_resources = best_worker['data']
+                    # Se analiza la zona con más recursos y menos máquinas
+                    if resources['cpu'] > best_resources['cpu']:
+                        puntaje += 1
+                    
+                    if resources['disk'] > best_resources['disk']:
+                        puntaje += 1
 
-                # Se analiza la zona con más recursos y menos máquinas
-                if resources['cpu'] > best_resources['cpu']:
-                    puntaje += 1
-                
-                if resources['disk'] > best_resources['disk']:
-                    puntaje += 1
+                    if resources['memory'] > best_resources['memory']:
+                        puntaje += 1
+                    
+                    if resources['vms'] < best_resources['vms']:
+                        puntaje += 1
+                    
+                    if puntaje >= 2:
+                        best_worker = zona
 
-                if resources['memory'] > best_resources['memory']:
-                    puntaje += 1
-                
-                if resources['vms'] < best_resources['vms']:
-                    puntaje += 1
-                
-                if puntaje >= 2:
-                    best_worker = zona
-
-                print((best_worker['host'],puntaje))
+                    print((best_worker['host'],puntaje))
+            except Exception as e:
+                pass
 
     if best_worker['host'] != '':
         util.printSuccess(f"\nEl mejor worker es {best_worker['host']}")
-        return best_worker
+        return best_worker, flavor
     else:
         util.printError(f"Ninguna de las zonas elegidas puede albergar una VM de estas características")
-        return
+        return None,None
 
 def selectImage(IP_GATEWAY,headers):
     
@@ -146,7 +148,7 @@ def crearVM(IP_GATEWAY:str, headers:dict[str,str]):
     flavorVM = selectFlavor(IP_GATEWAY,headers)
     if flavorVM is None: return 
     
-    host = selectAvailabilityZone(IP_GATEWAY,flavorVM)
+    host, resources = selectAvailabilityZone(IP_GATEWAY,flavorVM)
     if host is None: return
 
     imageVM = selectImage(IP_GATEWAY,headers)
@@ -179,8 +181,22 @@ def crearVM(IP_GATEWAY:str, headers:dict[str,str]):
     
     headers2 = {"X-OpenStack-Nova-API-Version": "2.87", "Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
     response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers",json=body,headers=headers2)
-    
+
+
     if response.status_code == 202:
+        responseUpdateWorker = req.post(f"http://{IP_GATEWAY}:6700/updateWorkerResources", json={
+            "worker": host['host'][-1],
+            "resources":{
+                "action": "add",
+                "memory" : resources['ram'],
+                'disk' : resources['disk'],
+                'cpu': resources['vcpus'],
+                'name': nameVM
+            }
+        })
+        print(responseUpdateWorker.json())
+
+
         util.printSuccess(f"\nVM creada exitosamente! Esta podría tardarse unos segundos en iniciar.")
         sleep(5)
     else:
@@ -275,7 +291,21 @@ def menuVM():
 
                 if response.status_code == 204:
                     util.printSuccess(f"\nLa VM {vm['name']} esta siendo eliminada. Esto podría tardar algunos minutos en completarse")
-                    sleep(3)
+                    sleep(4)
+                    #print(vm)
+                    #print(vm.get("OS-EXT-SRV-ATTR:hypervisor_hostname"))
+                    responseUpdateWorker = req.post(f"http://{IP_GATEWAY}:6700/updateWorkerResources", json={
+                                "worker": vm["OS-EXT-SRV-ATTR:hypervisor_hostname"][-1],
+                                'resources':{
+                                "action": "remove",
+                            'name': vm['name']
+                            }
+                        })
+
+                    
+                        
+                    #print(responseUpdateWorker.json())
+
                 else:
                     util.printError(f"\nHubo un problema, error {response.status_code}")
                     # print(response.json()) 
