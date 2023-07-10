@@ -147,7 +147,7 @@ def menuSlice(login:bool):
         responseRole = req.put('http://' + var.dirrecionIP + f':5000/v3/projects/{response["project"]["id"]}/users/{var.userid}/roles/1b7359c3207348cba2a71315f1a2f575', headers=headers)
 
 
-        print(responseRole,f"\n{response['project']['id']}")
+        #print(responseRole,f"\n{response['project']['id']}")
 
 
         project_id = response['project']['id']
