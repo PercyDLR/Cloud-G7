@@ -4,6 +4,7 @@ import modUtilidades as util
 from login import IngresarCredenciales
 import requests as req
 import variables as var
+from time import sleep
 
 @dataclass
 class Slice:
@@ -126,15 +127,37 @@ def menuSlice(login:bool):
     "Muestra el menú de gestión de slices"
     headers = {"Content-Type": "application/json", "X-Auth-Token": var.dic["token"]}
     
-    listaProyectos = req.get(f"http://{var.dirrecionIP}:5000/v3/auth/projects",params={"domain_id":"default"},headers=headers).json()['projects']
+    listaProyectos = req.get(f"http://{var.dirrecionIP}:5000/v3/auth/projects",params={"domain_id":f"{var.username}"},headers=headers).json()['projects']
     nombreProyectos = [project['name'] for project in listaProyectos]
 
     opt = util.printMenu(["Seleccione un slice:","Crear Nuevo","Cancelar",None] + nombreProyectos)
 
     # Se crea un slice
     if opt == 0:
-        pass
-    
+        while (nombre:= util.printInput("\n> Ingrese nombre del Slice: ")) == "" or nombre in nombreProyectos:
+                print("\nDebe ingresar un nombre para el slice que no sea repetido")
+        
+        topo = util.printMenu(["Elija una topologia base para el slice:","Lineal", "Malla", "Arbol", "Anillo", "Bus"])
+
+        proyecto_crear=  {'project': {'name': nombre, 'enabled': True , 'domain_id' : "default"}}
+
+        response = req.post('http://' + var.dirrecionIP + ':5000/v3/projects', headers=headers, json=proyecto_crear).json()
+
+
+        responseRole = req.put('http://' + var.dirrecionIP + f':5000/v3/projects/{response["project"]["id"]}/users/{var.userid}/roles/1b7359c3207348cba2a71315f1a2f575', headers=headers)
+
+
+        print(responseRole,f"\n{response['project']['id']}")
+
+
+        project_id = response['project']['id']
+
+        util.printSuccess(f"\nSlice {nombre} creado exitosamente. Cambiando de grupo...\n")
+
+
+
+        seleccionarProyecto(response["project"])
+
     # Cancelar
     elif opt == 1:
         util.printError("\nCancelando Operacion...")

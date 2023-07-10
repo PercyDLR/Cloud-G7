@@ -38,6 +38,10 @@ def IngresarCredenciales(skip=False):
     
     while((user:=printInput("Ingrese su usuario: "))==""):
         printError("No puede ser vacio")
+    
+    variables.username = user
+
+
     while((password:=getpass.getpass(prompt=f"{Fore.CYAN}{Style.BRIGHT}Ingrese su contraseña: {Style.RESET_ALL}"))==""):
         printError("No puede ser vacio")
 
@@ -81,6 +85,7 @@ def IngresarCredenciales(skip=False):
         # print(f"Su token expira en: {expiration}")
 
         variables.dic['token'] = response.headers["X-Subject-Token"]
+        variables.userid=response.json()["token"]["user"]["id"]
         s.menuSlice(login=True)
         
     else:
