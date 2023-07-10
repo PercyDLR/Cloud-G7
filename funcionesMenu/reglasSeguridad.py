@@ -48,7 +48,7 @@ def menuSecGroup() -> None:
             break
         # Creación de nuevo grupo
         elif opt == 0:
-            nombre = input("\nIngrese un nombre para el Grupo de Seguridad: ").strip()
+            nombre = util.printInput("\nIngrese un nombre para el Grupo de Seguridad: ").strip()
             body = {
                 "security_group": {
                     "name": nombre,
@@ -74,23 +74,25 @@ def menuSecGroup() -> None:
             # Se crea una nueva regla
             if opt2 == 0:
                 # Se obtiene el protocolo
-                protos = ["Elija un protocolo","udp","tcp"]
+                protos = ["Elija un protocolo","udp","tcp","icmp"]
                 opt3 = util.printMenu(protos)
 
-                # Se obtiene el puerto
-                while True:
-                    try:
-                        puerto = int(input("> Ingrese un puerto [1-65536]: ").strip())
-                        if puerto > 65536 or puerto < 1:
-                            raise ValueError
-                        break
-                    except ValueError:
-                        util.printError("\nEl puerto debe ser un número entero entre 1 y 65536")
+                if opt3 != 2:
+                    # Se obtiene el puerto
+                    while True:
+                        try:
+                            puerto = int(util.printInput("Ingrese un puerto [1-65536]: ").strip())
+                            if puerto > 65536 or puerto < 1:
+                                raise ValueError
+                            break
+                        except ValueError:
+                            util.printError("\nEl puerto debe ser un número entero entre 1 y 65536")
+                else: puerto = None
 
                 # Se obtiene el ip
                 while True:
                     try:
-                        ip = input("> Ingrese una dirección IP [Por defecto 0.0.0.0/0]: ").strip()
+                        ip = util.printInput("Ingrese una dirección IP [Por defecto 0.0.0.0/0]: ").strip()
                         if ip == "":
                             ip = "0.0.0.0/0"
                         else:
@@ -99,14 +101,14 @@ def menuSecGroup() -> None:
                     except ValueError:
                         util.printError("\nLa dirección IP ingresada debe tener el formato a.b.c.d/e")
 
-                descripcion = input("> Ingrese una descripción para la regla: ").strip()
+                descripcion = util.printInput("Ingrese una descripción para la regla: ").strip()
 
                 # Se genera el cuerpo del request
                 body = {
                         "security_group_rule": {
                             "direction": "ingress",
-                            "port_range_min": puerto,
                             "ethertype": "IPv4",
+                            "port_range_min": puerto,
                             "port_range_max": puerto,
                             "protocol": protos[opt3+1],
                             "security_group_id": grupo['id'],
@@ -114,6 +116,7 @@ def menuSecGroup() -> None:
                             "description": descripcion
                             }
                         }
+
                 response = req.post(f"http://{IP_GATEWAY}:9696/v2.0/security-group-rules",json=body,headers=headers)
 
                 if response.status_code == 201:
