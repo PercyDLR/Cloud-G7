@@ -220,6 +220,10 @@ def menuProvider():
                     }
                 }
 
+
+                optgw= util.printMenu(["¿Desea añadir un gateway a la red (Salida a internet)? ", "Sí","No"])
+
+
                 network_temp = IPv4Network(cidr)
                 # Find the first available IP address
                 for ip in network_temp.hosts():
@@ -234,7 +238,8 @@ def menuProvider():
 
                 nuevaSubred = req.post(f"http://{IP_GATEWAY}:9696/v2.0/subnets",headers=headers,json=body)
                 if nuevaSubred.status_code == 201:
-                    req.post(f"http://{IP_GATEWAY}:6700/createGateway", json={'vlan':vlan, 'ip':gwip})
+                    if optgw==0:
+                        req.post(f"http://{IP_GATEWAY}:6700/createGateway", json={'vlan':vlan, 'ip':gwip})
                     util.printSuccess(f"Subred {nombreSubred} creada exitosamente!")
                 else:
                     util.printError(f"\nHubo un problema al crear la subred ({nuevaSubred.status_code})")
@@ -263,7 +268,7 @@ def menuProvider():
                 print(f"Eliminando la red {red['name']}...",sep=" ")
                 if response.status_code == 204:
                     util.printSuccess(f"La red {red['name']} fue eliminada exitosamente")
-                if response.status_code == 409:
+                elif response.status_code == 409:
                     util.printError(f"La red {red['name']} está siendo usada aún (Error {response.status_code})")
                 else:
                     util.printError(f"Hubo un error al eliminar la red {red['name']} ({response.status_code})")
