@@ -1,6 +1,7 @@
 import requests as req
 import variables as var
 import modUtilidades as util
+from time import sleep
 
 def selectFlavor(IP_GATEWAY,headers):
         
@@ -177,7 +178,8 @@ def crearVM(IP_GATEWAY:str, headers:dict[str,str]):
     response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers",json=body,headers=headers2)
     
     if response.status_code == 202:
-        util.printSuccess(f"\nVM creada exitosamente!")
+        util.printSuccess(f"\nVM creada exitosamente! Esta podría tardarse unos segundos en iniciar.")
+        sleep(5)
     else:
         util.printError(f"\nHubo un problema, error {response.status_code}")
         print(response.json())
@@ -222,7 +224,7 @@ def menuVM():
 
             opt2 = util.printMenu([f"Opciones de la VM {vm['name']}:",
                                    "Encender VM" if vm['status'] == 'SHUTOFF' else "Detener VM",
-                                   "Reiniciar VM","Eliminar VM","Salir"])
+                                   "Acceso Consola VNC","Reiniciar VM","Eliminar VM","Salir"])
                         
             # Encender
             if opt2 == 0:
@@ -231,28 +233,46 @@ def menuVM():
                 response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers/{vm['id']}/action",json={action: None},headers=headers)
 
                 if response.status_code == 202:
-                    util.printSuccess(f"\nLa VM {vm['name']} se está {'encendiendo' if action == 'os-start' else 'deteniendo'}. Esto podría tardar algunos minutos en completarse")
+                    util.printSuccess(f"\nLa VM {vm['name']} se está {'encendiendo' if action == 'os-start' else 'deteniendo'}. Esto podría tardar algunos segundos en completarse")
+                    sleep(3)
+                else:
+                    util.printError(f"\nHubo un problema, error {response.status_code}")
+                    # print(response.json())
+            
+            elif opt2 == 1:
+                response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers/{vm['id']}/action",json={"os-getVNCConsole":{"type": "novnc"}},headers=headers)
+                
+                if response.status_code == 200:
+                    
+                    url:str = response.json()['console']['url']
+                    url = url.replace("controller",IP_GATEWAY)
+
+                    util.printSuccess(f"\nPor favor conectarse a la VM usando el siguiente enlace:")
+                    print(url)
                 else:
                     util.printError(f"\nHubo un problema, error {response.status_code}")
                     # print(response.json())
 
+
             # Reiniciar VM
-            if opt2 == 1:
+            elif opt2 == 2:
                 tipo = "SOFT" if vm['status'] == 'ACTIVE' else "HARD"
                 response = req.post(f"http://{IP_GATEWAY}:8774/v2.1/servers/{vm['id']}/action",json={"reboot": {"type": tipo}},headers=headers)
 
                 if response.status_code == 202:
-                    util.printSuccess(f"\nLa VM {vm['name']} se está reiniciando ({tipo} reboot). Esto podría tardar algunos minutos en completarse")
+                    util.printSuccess(f"\nLa VM {vm['name']} se está reiniciando ({tipo} reboot). Esto podría tardar algunos segundos en completarse")
+                    sleep(5)
                 else:
                     util.printError(f"\nHubo un problema, error {response.status_code}")
                     # print(response.json())
 
             # Eliminar VM
-            if opt2 == 2:
+            elif opt2 == 3:
                 response = req.delete(f"http://{IP_GATEWAY}:8774/v2.1/servers/{vm['id']}",headers=headers)
 
                 if response.status_code == 204:
                     util.printSuccess(f"\nLa VM {vm['name']} esta siendo eliminada. Esto podría tardar algunos minutos en completarse")
+                    sleep(3)
                 else:
                     util.printError(f"\nHubo un problema, error {response.status_code}")
                     # print(response.json()) 

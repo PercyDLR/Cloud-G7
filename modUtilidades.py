@@ -8,7 +8,7 @@ from ttkthemes import ThemedTk
 from tkinter.filedialog import askopenfilename
 from os.path import expanduser
 
-def printMenu(lineas:List[str],multiselect:bool = False,preselected_entries:list = [],comando:str|None = None) -> int:
+def printMenu(lineas:List[str],multiselect:bool = False,preselect:list = [],comando:str|None = None) -> int:
     "Imprime un menú para la interacción del usuario"
     
     try:
@@ -26,16 +26,17 @@ def printMenu(lineas:List[str],multiselect:bool = False,preselected_entries:list
                                  search_highlight_style = ("bg_red", "bold"),
                                  menu_highlight_style = ("bg_cyan","bold"),
                                  menu_cursor_style = ("fg_cyan", "bold"),
-                                 status_bar_style=("fg_yellow","bold"),
+                                 status_bar_style=("fg_red","bold"),
+                                 multi_select_select_on_accept=False,
                                  status_bar_below_preview=True,
                                  show_multi_select_hint=True,
                                  clear_menu_on_exit=False,
                                  multi_select=multiselect,
                                  preview_command=comando,
                                  preview_title="Detalle",
-                                 preselected_entries=preselected_entries,
+                                 preselected_entries=preselect,
                                  # preview_title=f"{Style.BRIGHT}Detalle{Style.RESET_ALL}",
-                                 show_multi_select_hint_text="Presione {multi_select_keys} para seleccionar y {accept_keys} para seleccionar y aceptar")
+                                 show_multi_select_hint_text="Presione {multi_select_keys} para seleccionar y {accept_keys} para aceptar")
     return terminal_menu.show()  # type: ignore
     
 def validarOpcionNumerica(opt:str,max:int,) -> bool:

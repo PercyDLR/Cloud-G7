@@ -50,11 +50,12 @@ if __name__=="__main__":
             preselect = [int(zona[6:7])+1 for zona in var.dic['zonasElegidas']]
 
             idxs = util.printMenu(["Elegir zonas de disponibilidad","Cancelar",None]+zonas,multiselect=True,
-                                  preselected_entries=preselect) #type: ignore
+                                  preselect=preselect) #type: ignore
             
             if 0 in idxs: continue # type:ignore
 
             zonasElegidas = []
+            print(idxs)
             for idx in idxs: # type: ignore
                 zonasElegidas.append(zonas[idx-2])
             
