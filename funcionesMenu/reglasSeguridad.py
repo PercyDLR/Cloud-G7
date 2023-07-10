@@ -31,7 +31,7 @@ def menuSecGroup() -> None:
 
     while True:
         # Se generan las opciones
-        listaGrupos = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers).json()
+        listaGrupos = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers,params={"project_id": var.dic['projectID']}).json()
         nombreGrupos = [f"{grupo['name']}|{['sg_rule',grupo['security_group_rules']]}" for grupo in listaGrupos["security_groups"]]
         
         #print(eval(nombreGrupos[0].split("|")[1])[1])
@@ -52,6 +52,7 @@ def menuSecGroup() -> None:
             body = {
                 "security_group": {
                     "name": nombre,
+                    "project_id": var.dic['projectID']
                 }
             }
             response = req.post(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",json=body,headers=headers)

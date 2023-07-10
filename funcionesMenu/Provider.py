@@ -20,7 +20,7 @@ def menuProvider():
         red = {}
 
         # Querys
-        response = req.get(f"http://{IP_GATEWAY}:9696/v2.0/networks?admin_state_up=true",headers=headers)
+        response = req.get(f"http://{IP_GATEWAY}:9696/v2.0/networks?admin_state_up=true",headers=headers,params={"project_id": var.dic['projectID']})
         networksList = response.json()["networks"]
 
         '''

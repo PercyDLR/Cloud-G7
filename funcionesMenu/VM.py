@@ -85,7 +85,7 @@ def selectNetwork(IP_GATEWAY,headers):
     res = req.get(f"http://{IP_GATEWAY}:9696/v2.0/subnets",headers=headers)
     subnetsList = res.json()["subnets"]
     
-    response = req.get(f"http://{IP_GATEWAY}:9696/v2.0/networks?admin_state_up=true",headers=headers)
+    response = req.get(f"http://{IP_GATEWAY}:9696/v2.0/networks?admin_state_up=true",headers=headers,params={"project_id": var.dic['projectID']})
     networksList = response.json()["networks"]
     
     subnetsListActive = []
@@ -128,7 +128,7 @@ def selectKeypair(IP_GATEWAY,headers):
     return selected_key["keypair"]
     
 def selectGroup(IP_GATEWAY,headers):
-    sgList = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers).json()["security_groups"]
+    sgList = req.get(f"http://{IP_GATEWAY}:9696/v2.0/security-groups",headers=headers,params={"project_id": var.dic['projectID']}).json()["security_groups"]
     menu_items = [f"{grupo['name']}|{['sg_rule',grupo['security_group_rules']]}" for grupo in sgList]
     
     # Muestra el menú y obtiene la selección del usuario
